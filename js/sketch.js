@@ -111,6 +111,7 @@ const drawFns = {}; // drawFns['0'](p, g, state) 형태
   }
 
   drawFns['0'] = (p, g, st) => {
+    console.log("drawFns[0] 실행", g, st);
     if (!st.inited) {
       st.inited = true;
       st.t = 0;
@@ -220,6 +221,7 @@ function mainSketch(p) {
 // Graphics → 실제 <canvas> 복사
 function blit(g, htmlCanvas) {
   if (!g || !htmlCanvas) return;
+  console.log("blit", g, htmlCanvas);
   const ctx = htmlCanvas.getContext('2d');
   ctx.clearRect(0, 0, htmlCanvas.width, htmlCanvas.height);
   ctx.drawImage(g.elt, 0, 0, htmlCanvas.width, htmlCanvas.height);
