@@ -41,11 +41,14 @@
 
       /* 숨겨진 월별 캔버스 (AR 텍스처 소스용) */
       .month-canvas {
-        position: absolute;
-        left: -9999px;
-        top: -9999px;
+        opacity: 0;
+        pointer-events: none;
+        position: fixed;
+        left: 0;
+        top: 0;
         width: 850px;
         height: 1900px;
+        z-index: -1;
       }
     </style>
   </head>
