@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>calendar-ar</title>
+
+    <!-- 캐시 비활성화 (테스트 중일 때만 사용, 배포 시 제거 가능) -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <!-- A-Frame + MindAR + p5 -->
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.0/dist/mindar-image-aframe.prod.js"></script>
+    <script src="js/p5.min.js"></script>
+    <script src="js/sketch-12months.js"></script>
+
+    <!-- A-Frame용 캔버스 업데이트 컴포넌트 -->
+    <script>
+      AFRAME.registerComponent("canvas-updater", {
+        dependencies: ["geometry", "material"],
+        tick: function () {
+          const mesh = this.el.getObject3D("mesh");
+          if (mesh && mesh.material && mesh.material.map) {
+            mesh.material.map.needsUpdate = true;
+          }
+        },
+      });
+    </script>
+
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #000;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      /* 숨겨진 월별 캔버스 (AR 텍스처 소스용) */
+      .month-canvas {
+        position: absolute;
+        left: -9999px;
+        top: -9999px;
+        width: 850px;
+        height: 1900px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- 12개의 월별 캔버스 -->
+    <canvas id="canvas-0" class="month-canvas" width="850" height="1900"></canvas>
+    <canvas id="canvas-1" class="month-canvas" width="850" height="1900"></canvas>
+    <canvas id="canvas-2" class="month-canvas" width="850" height="1900"></canvas>
+    <canvas id="canvas-3" class="month-canvas" width="850" height="1900"></canvas>
+    <canvas id="canvas-4" class="month-canvas" width="850" height="1900"></canvas>
+    <canvas id="canvas-5" class="month-canvas" width="850" height="1900"></canvas>
+    <canvas id="canvas-6" class="month-canvas" width="850" height="1900"></canvas>
+    <canvas id="canvas-7" class="month-canvas" width="850" height="1900"></canvas>
+    <canvas id="canvas-8" class="month-canvas" width="850" height="1900"></canvas>
+    <canvas id="canvas-9" class="month-canvas" width="850" height="1900"></canvas>
+    <canvas id="canvas-10" class="month-canvas" width="850" height="1900"></canvas>
+    <canvas id="canvas-11" class="month-canvas" width="850" height="1900"></canvas>
+
+    <!-- MindAR + A-Frame -->
+    <a-scene
+      mindar-image="imageTargetSrc: data/targets.mind; filterMinCF: 0.0005; filterBeta: 0.1;"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+    >
+      <a-camera look-controls="enabled: false" position="0 0 0"></a-camera>
+
+      <!-- 12개의 타겟 (targetIndex 0–11) -->
+      <a-entity id="target-0" mindar-image-target="targetIndex: 0">
+        <a-plane
+          position="0 0 0"
+          width="1"
+          height="2.235" <!-- 850:1900 비율 유지 -->
+          material="src:#canvas-0"
+          canvas-updater
+        ></a-plane>
+      </a-entity>
+
+      <a-entity id="target-1" mindar-image-target="targetIndex: 1">
+        <a-plane
+          position="0 0 0"
+          width="1"
+          height="2.235"
+          material="src:#canvas-1"
+          canvas-updater
+        ></a-plane>
+      </a-entity>
+
+      <a-entity id="target-2" mindar-image-target="targetIndex: 2">
+        <a-plane
+          position="0 0 0"
+          width="1"
+          height="2.235"
+          material="src:#canvas-2"
+          canvas-updater
+        ></a-plane>
+      </a-entity>
+
+      <a-entity id="target-3" mindar-image-target="targetIndex: 3">
+        <a-plane
+          position="0 0 0"
+          width="1"
+          height="2.235"
+          material="src:#canvas-3"
+          canvas-updater
+        ></a-plane>
+      </a-entity>
+
+      <a-entity id="target-4" mindar-image-target="targetIndex: 4">
+        <a-plane
+          position="0 0 0"
+          width="1"
+          height="2.235"
+          material="src:#canvas-4"
+          canvas-updater
+        ></a-plane>
+      </a-entity>
+
+      <a-entity id="target-5" mindar-image-target="targetIndex: 5">
+        <a-plane
+          position="0 0 0"
+          width="1"
+          height="2.235"
+          material="src:#canvas-5"
+          canvas-updater
+        ></a-plane>
+      </a-entity>
+
+      <a-entity id="target-6" mindar-image-target="targetIndex: 6">
+        <a-plane
+          position="0 0 0"
+          width="1"
+          height="2.235"
+          material="src:#canvas-6"
+          canvas-updater
+        ></a-plane>
+      </a-entity>
+
+      <a-entity id="target-7" mindar-image-target="targetIndex: 7">
+        <a-plane
+          position="0 0 0"
+          width="1"
+          height="2.235"
+          material="src:#canvas-7"
+          canvas-updater
+        ></a-plane>
+      </a-entity>
+
+      <a-entity id="target-8" mindar-image-target="targetIndex: 8">
+        <a-plane
+          position="0 0 0"
+          width="1"
+          height="2.235"
+          material="src:#canvas-8"
+          canvas-updater
+        ></a-plane>
+      </a-entity>
+
+      <a-entity id="target-9" mindar-image-target="targetIndex: 9">
+        <a-plane
+          position="0 0 0"
+          width="1"
+          height="2.235"
+          material="src:#canvas-9"
+          canvas-updater
+        ></a-plane>
+      </a-entity>
+
+      <a-entity id="target-10" mindar-image-target="targetIndex: 10">
+        <a-plane
+          position="0 0 0"
+          width="1"
+          height="2.235"
+          material="src:#canvas-10"
+          canvas-updater
+        ></a-plane>
+      </a-entity>
+
+      <a-entity id="target-11" mindar-image-target="targetIndex: 11">
+        <a-plane
+          position="0 0 0"
+          width="1"
+          height="2.235"
+          material="src:#canvas-11"
+          canvas-updater
+        ></a-plane>
+      </a-entity>
+    </a-scene>
+  </body>
+</html>
