@@ -6,8 +6,10 @@
 
 // ---------- 공통 설정 ----------
 const IDS = Array.from({ length: 12 }, (_, i) => i.toString()); // "0"..."11"
-const CANVAS_W = 850;  // 8.5cm 비율 px
-const CANVAS_H = 1900; // 19cm 비율 px
+// 8.5cm x 19cm를 px로 변환 (1인치=2.54cm, 1인치=96px)
+const PX_PER_CM = 96 / 2.54;
+const CANVAS_W = Math.round(8.5 * PX_PER_CM);
+const CANVAS_H = Math.round(19 * PX_PER_CM);
 
 // HTMLCanvas, p5.Graphics, 가시성, 상태
 const canvases = {};   // { '0': HTMLCanvasElement, ... }
