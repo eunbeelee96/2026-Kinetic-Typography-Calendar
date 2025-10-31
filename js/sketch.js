@@ -1,3 +1,67 @@
+/* ============= February (target 1) ============= */
+(() => {
+  // --- Settings ---
+  const SETTINGS = {
+    fg: "#000000",
+    bg: "#ffffff",
+    ParticleGlyph: ",",
+    ParticleCount: 50,
+    ParticleSize: 45,
+    RainGravity: 0.45,
+    RainWindAmp: 0.9,
+    RainWindFreq: 0.7,
+    RainTerminal: 9.0,
+    RainRespawnTopPad: 12
+  };
+
+  // state 구조: { t, particles:[...], inited:boolean }
+  function initParticles(p, g, st, n) {
+    st.particles = [];
+    for (let i = 0; i < n; i++) {
+      st.particles.push({
+        x: p.random(g.width),
+        y: p.random(-50, g.height),
+        vy: p.random(1, 3)
+      });
+    }
+  }
+
+  function updateAndDrawParticles(p, g, st) {
+    g.fill(SETTINGS.fg);
+    g.noStroke();
+    g.textSize(SETTINGS.ParticleSize);
+
+    for (let i = 0; i < st.particles.length; i++) {
+      let pt = st.particles[i];
+      pt.y += pt.vy;
+      if (pt.y > g.height + 20) {
+        pt.y = p.random(-50, -10);
+        pt.x = p.random(g.width);
+        pt.vy = p.random(1, 3);
+      }
+      g.text(SETTINGS.ParticleGlyph, pt.x, pt.y);
+    }
+  }
+
+  drawFns['1'] = (p, g, st) => {
+    if (!st.inited) {
+      st.inited = true;
+      st.t = 0;
+      initParticles(p, g, st, SETTINGS.ParticleCount);
+      g.textFont(loadedFont || 'serif');
+      g.textAlign(p.LEFT, p.CENTER);
+      g.pixelDensity(2);
+    }
+
+    g.background(SETTINGS.bg);
+
+    // 콤마 비 효과
+    updateAndDrawParticles(p, g, st);
+
+    // time step (필요시)
+    st.t += 1;
+  };
+})();
 /* ===============================
    sketch-12months.js
    - targetIndex 0 → canvas-0에 January 애니메이션
