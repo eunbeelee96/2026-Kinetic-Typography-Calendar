@@ -1,3 +1,19 @@
+// ---------- 공통 설정 ----------
+const IDS = Array.from({ length: 12 }, (_, i) => i.toString()); // "0"..."11"
+const drawFns = {}; // drawFns['0'](p, g, state) 형태
+// 8.5cm x 19cm를 px로 변환 (1인치=2.54cm, 1인치=96px)
+const PX_PER_CM = 96 / 2.54;
+const CANVAS_W = Math.round(8.5 * PX_PER_CM);
+const CANVAS_H = Math.round(19 * PX_PER_CM);
+// HTMLCanvas, p5.Graphics, 가시성, 상태
+const canvases = {};   // { '0': HTMLCanvasElement, ... }
+const layers = {};     // { '0': p5.Graphics, ... }
+const visible = {};    // { '0': boolean, ... }
+const STATE = {};      // { '0': {...}, ... }
+// 폰트 경로 (네 경로로 수정 가능)
+const FONT_PATH = 'IPAMincho Regular.ttf';
+let loadedFont = null;
+
 /* ============= February (target 1) ============= */
 (() => {
   // --- Settings ---
@@ -62,31 +78,6 @@
     st.t += 1;
   };
 })();
-/* ===============================
-   sketch-12months.js
-   - targetIndex 0 → canvas-0에 January 애니메이션
-   - 나머지 1~11은 템플릿만 남겨둠
-================================= */
-
-// ---------- 공통 설정 ----------
-const IDS = Array.from({ length: 12 }, (_, i) => i.toString()); // "0"..."11"
-// 8.5cm x 19cm를 px로 변환 (1인치=2.54cm, 1인치=96px)
-const PX_PER_CM = 96 / 2.54;
-const CANVAS_W = Math.round(8.5 * PX_PER_CM);
-const CANVAS_H = Math.round(19 * PX_PER_CM);
-
-// HTMLCanvas, p5.Graphics, 가시성, 상태
-const canvases = {};   // { '0': HTMLCanvasElement, ... }
-const layers = {};     // { '0': p5.Graphics, ... }
-const visible = {};    // { '0': boolean, ... }
-const STATE = {};      // { '0': {...}, ... }
-
-// 폰트 경로 (네 경로로 수정 가능)
-const FONT_PATH = 'IPAMincho Regular.ttf';
-let loadedFont = null;
-
-// ---------- 달별 드로우 함수 등록 ----------
-const drawFns = {}; // drawFns['0'](p, g, state) 형태
 
 /* ============= January (target 0) ============= */
 /* 네가 준 코드를 p5.Graphics(g) 기반으로 변환 */
