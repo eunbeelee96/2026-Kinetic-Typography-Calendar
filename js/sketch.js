@@ -70,68 +70,69 @@ let loadedFont = null;
     }
 
     g.background(SETTINGS.bg);
-  // 메인 텍스트 렌더링
-  const fontSize   = sliders.FontSize.value();
-  const topMargin  = sliders.TopMargin.value();
-  const bottomMargin = sliders.BottomMargin.value();
+    // 메인 텍스트 렌더링
+    const fontSize   = sliders.FontSize.value();
+    const topMargin  = sliders.TopMargin.value();
+    const bottomMargin = sliders.BottomMargin.value();
 
-  const startValue = sliders.StartValue.value();
-  const endValue   = sliders.EndValue.value();
-  const duration   = max(0.001, sliders.Duration.value());
-  const delay      = sliders.Delay.value();
-  const distance   = sliders.Distance.value();
-  const timeStep   = sliders.Speed.value();
+    const startValue = sliders.StartValue.value();
+    const endValue   = sliders.EndValue.value();
+    const duration   = max(0.001, sliders.Duration.value());
+    const delay      = sliders.Delay.value();
+    const distance   = sliders.Distance.value();
+    const timeStep   = sliders.Speed.value();
 
-  const gamma      = sliders.Gamma.value();
-  const phaseOff   = sliders.Phase.value() * duration;
-  const rowPhase   = sliders.RowPhase.value();
-  const delayCurve = sliders.DelayCurve.value();
+    const gamma      = sliders.Gamma.value();
+    const phaseOff   = sliders.Phase.value() * duration;
+    const rowPhase   = sliders.RowPhase.value();
+    const delayCurve = sliders.DelayCurve.value();
 
-  textSize(fontSize);
+    g.textSize(fontSize);
 
-  const usableH = height - topMargin - bottomMargin;
-  const copies = constrain(floor(usableH / distance), 1, 1200);
+    const usableH = g.height - topMargin - bottomMargin;
+    const copies = constrain(floor(usableH / distance), 1, 1200);
 
-  for (let idx = 0; idx < copies; idx++) {
-    const rowFrac = (copies>1) ? idx/(copies-1) : 0;
-    const curvedDelay = delay * pow(rowFrac, delayCurve);
-    const timeWithDelay = (t + phaseOff + idx * rowPhase) - curvedDelay;
+    for (let idx = 0; idx < copies; idx++) {
+      const rowFrac = (copies>1) ? idx/(copies-1) : 0;
+      const curvedDelay = delay * pow(rowFrac, delayCurve);
+      const timeWithDelay = (t + phaseOff + idx * rowPhase) - curvedDelay;
 
-    const progressRaw = progressByMonth(currentMonth, timeWithDelay, duration);
-    const progress = pow(progressRaw, gamma);
+      const progressRaw = progressByMonth(currentMonth, timeWithDelay, duration);
+      const progress = pow(progressRaw, gamma);
 
-    const tracking = startValue + progress * (endValue - startValue);
-    const y = topMargin + idx * distance;
+      const tracking = startValue + progress * (endValue - startValue);
+      const y = topMargin + idx * distance;
 
-    const totalW = trackedTextWidth(wordStr, tracking);
-    let x;
+      const totalW = trackedTextWidth(wordStr, tracking);
+      let x;
 
-    if (sliders.UseMonthGrid && sliders.UseMonthGrid.checked()) {
-      if (alignSelect && alignSelect.elt) alignSelect.elt.disabled = true;
-      x = startXFromAnchor(totalW);
-    } else {
-      if (alignSelect && alignSelect.elt) alignSelect.elt.disabled = false;
-      const align = alignSelect.value();
-      x = calculateCreativeAlignment(align, totalW, idx, timeWithDelay, y, sideMargin);
+      if (sliders.UseMonthGrid && sliders.UseMonthGrid.checked()) {
+        if (alignSelect && alignSelect.elt) alignSelect.elt.disabled = true;
+        x = startXFromAnchor(totalW);
+      } else {
+        if (alignSelect && alignSelect.elt) alignSelect.elt.disabled = false;
+        const align = alignSelect.value();
+        x = calculateCreativeAlignment(align, totalW, idx, timeWithDelay, y, sideMargin);
+      }
+
+      // 간단한 텍스트 렌더링
+      // console.log('drawTrackedText:', wordStr, x, y, tracking, 'fontSize:', fontSize, 'fg:', fgPicker.value());
+      g.push();
+      g.fill(fgPicker.value());
+      drawTrackedText(g, wordStr, x, y, tracking);
+      g.pop();
     }
 
-    // 간단한 텍스트 렌더링
-    push();
-    fill(fgPicker.value());
-    drawTrackedText(wordStr, x, y, tracking);
-    pop();
-  }
+    if (!paused) t += timeStep;
 
-  if (!paused) t += timeStep;
-
-  if (recording) {
-    if (frameIndex <= maxFrames) {
-      saveCanvas(`frame_${nf(frameIndex, 4)}`, 'png');
-      frameIndex++;
-    } else {
-      recording = false;
+    if (recording) {
+      if (frameIndex <= maxFrames) {
+        saveCanvas(`frame_${nf(frameIndex, 4)}`, 'png');
+        frameIndex++;
+      } else {
+        recording = false;
+      }
     }
-  }
   }
 
   function updateAndDrawDots(p, g, st) {
