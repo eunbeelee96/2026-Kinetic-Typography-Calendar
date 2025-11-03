@@ -21,27 +21,27 @@ let loadedFont = null;
     fg: "#000000",
     bg: "#ffffff",
     word: "january",
-    FontSize: 60,
-    TopMargin: 50,
-    BottomMargin: 50,
+    FontSize: 18,    // 60 → 18 (원본 크기)
+    TopMargin: 12,   // 50 → 12 (원본 크기)  
+    BottomMargin: 12, // 50 → 12 (원본 크기)
     SideMargin: 20,
     StartValue: 0,
-    EndValue: 180,
-    Duration: 3.2,
-    Delay: 0.05,
-    Distance: 56,
-    Speed: 0.02,
-    Gamma: 0.62,
+    EndValue: 130,   // 180 → 130 (원본 값)
+    Duration: 2.5,   // 3.2 → 2.5 (원본 값)
+    Delay: 0.08,     // 0.05 → 0.08 (원본 값)
+    Distance: 20,    // 56 → 20 (원본 값)
+    Speed: 0.015,    // 0.02 → 0.015 (원본 값)
+    Gamma: 1,        // 0.62 → 1 (원본 값)
     Phase: 0,
-    RowPhase: 0.149,
-    DelayCurve: 0.62
+    RowPhase: 0.12,  // 0.149 → 0.12 (원본 값)
+    DelayCurve: 1    // 0.62 → 1 (원본 값)
   };
 
-  const DOT_COUNT = 30;
-  const DOT_SIZE = 20;
-  const DOT_SPEED = 1.0;
+  const DOT_COUNT = 8;     // 30 → 8 (원본 값)
+  const DOT_SIZE = 100;    // 20 → 100 (원본 값)
+  const DOT_SPEED = 1.1;   // 1.0 → 1.1 (원본 값)
   const WIND_SCALE = 0.002;
-  const SWAY_FREQ = 1.5;
+  const SWAY_FREQ = 0.8;   // 1.5 → 0.8 (원본 값)
 
   function initDots(p, g, st, n) {
     st.dots = [];
@@ -138,19 +138,22 @@ let loadedFont = null;
 
 /* ============= February (target 1) ============= */
 (() => {
-  // --- Settings ---
+    // --- Settings ---
   const SETTINGS = {
     fg: "#000000",
     bg: "#ffffff",
-    ParticleGlyph: ",",
-    ParticleCount: 50,
-    ParticleSize: 60,  // 텍스트와 같은 크기로 설정
-    TextSize: 60,      // 텍스트 크기 추가
-    RainGravity: 0.45,
-    RainWindAmp: 0.9,
-    RainWindFreq: 0.7,
-    RainTerminal: 9.0,
-    RainRespawnTopPad: 12
+    ParticleGlyph: "/",      // "," → "/" (원본은 슬래시)
+    ParticleCount: 20,       // 50 → 20 (원본 값)
+    ParticleSize: 38,        // 60 → 38 (원본 값)
+    TextSize: 25,            // 60 → 25 (원본 값)
+    TopMargin: 6,            // 추가 (원본 값)
+    BottomMargin: 0,         // 추가 (원본 값)
+    Distance: 39,            // 추가 (원본 값)
+    RainGravity: 0.85,       // 0.45 → 0.85 (원본 값)
+    RainWindAmp: 0.35,       // 0.9 → 0.35 (원본 값)
+    RainWindFreq: 0.55,      // 0.7 → 0.55 (원본 값)
+    RainTerminal: 12.0,      // 9.0 → 12.0 (원본 값)
+    RainRespawnTopPad: 18    // 12 → 18 (원본 값)
   };
 
   // state 구조: { t, particles:[...], inited:boolean }
@@ -207,30 +210,30 @@ let loadedFont = null;
 
     g.background(SETTINGS.bg);
     
-    // 간단한 February 텍스트 (1월 스타일로)
+    // February 텍스트 (원본 스타일로)
     g.fill(SETTINGS.fg);
     g.noStroke();
-    g.textSize(SETTINGS.TextSize);  // 일관된 크기 사용  // 60 → 40으로 줄임
+    g.textSize(SETTINGS.TextSize);  // 25px
     
     const word = "february";
-    const usableH = g.height - 50 - 50;
-    const copies = Math.max(1, Math.floor(usableH / 40));  // distance도 40으로 조정
+    const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
+    const copies = Math.max(1, Math.floor(usableH / SETTINGS.Distance));
     
     for (let idx = 0; idx < copies; idx++) {
-      const timeWithDelay = st.t + idx * 0.1;
-      const progressRaw = triangle(timeWithDelay / 3.0);
-      const progress = Math.pow(progressRaw, 0.62);
-      const tracking = -10 + progress * (160 - (-10));
-      const y = 50 + idx * 40;  // 50 → 40으로 조정
-      const x = 20;
+      const timeWithDelay = st.t + idx * 0.069;  // 원본 RowPhase 값
+      const progressRaw = triangle(timeWithDelay / 1.52);  // 원본 Duration 값
+      const progress = Math.pow(progressRaw, 0.7);  // 원본 Gamma 값
+      const tracking = 300 + progress * (26 - 300);  // 원본 StartValue, EndValue (큰 트래킹 → 작게)
+      const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
+      const x = 20;  // SideMargin
       drawTrackedTextSimple(g, word, x, y, tracking);
     }
 
-    // 콤마 비
+    // 슬래시 비 (원본 스타일)
     updateAndDrawParticles(p, g, st);
 
-    // time step
-    st.t += 0.02;
+    // time step (원본 속도)
+    st.t += 0.028;
   };
 })();
 
