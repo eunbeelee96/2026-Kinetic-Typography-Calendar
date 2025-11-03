@@ -142,18 +142,18 @@ let loadedFont = null;
   const SETTINGS = {
     fg: "#000000",
     bg: "#ffffff",
-    ParticleGlyph: "/",      // "," → "/" (원본은 슬래시)
-    ParticleCount: 20,       // 50 → 20 (원본 값)
-    ParticleSize: 38,        // 60 → 38 (원본 값)
-    TextSize: 25,            // 60 → 25 (원본 값)
-    TopMargin: 6,            // 추가 (원본 값)
-    BottomMargin: 0,         // 추가 (원본 값)
-    Distance: 39,            // 추가 (원본 값)
-    RainGravity: 0.85,       // 0.45 → 0.85 (원본 값)
-    RainWindAmp: 0.35,       // 0.9 → 0.35 (원본 값)
-    RainWindFreq: 0.55,      // 0.7 → 0.55 (원본 값)
-    RainTerminal: 12.0,      // 9.0 → 12.0 (원본 값)
-    RainRespawnTopPad: 18    // 12 → 18 (원본 값)
+    ParticleGlyph: ",",      // "/" → "," (원본은 콤마)
+    ParticleCount: 50,       // 20 → 50 (원본 값)
+    ParticleSize: 45,        // 38 → 45 (원본 값)
+    TextSize: 19,            // 25 → 19 (원본 값)
+    TopMargin: 62,           // 6 → 62 (원본 값)
+    BottomMargin: 49,        // 0 → 49 (원본 값)
+    Distance: 31,            // 39 → 31 (원본 값)
+    RainGravity: 0.45,       // 0.85 → 0.45 (원본 값)
+    RainWindAmp: 0.9,        // 0.35 → 0.9 (원본 값)
+    RainWindFreq: 0.7,       // 0.55 → 0.7 (원본 값)
+    RainTerminal: 9.0,       // 12.0 → 9.0 (원본 값)
+    RainRespawnTopPad: 12    // 18 → 12 (원본 값)
   };
 
   // state 구조: { t, particles:[...], inited:boolean }
@@ -220,20 +220,20 @@ let loadedFont = null;
     const copies = Math.max(1, Math.floor(usableH / SETTINGS.Distance));
     
     for (let idx = 0; idx < copies; idx++) {
-      const timeWithDelay = st.t + idx * 0.069;  // 원본 RowPhase 값
-      const progressRaw = triangle(timeWithDelay / 1.52);  // 원본 Duration 값
-      const progress = Math.pow(progressRaw, 0.7);  // 원본 Gamma 값
-      const tracking = 300 + progress * (26 - 300);  // 원본 StartValue, EndValue (큰 트래킹 → 작게)
+      const timeWithDelay = st.t + idx * 0.149;  // 원본 RowPhase 값 (0.149)
+      const progressRaw = triangle(timeWithDelay / 2.5);  // 원본 Duration 값 (2.5)
+      const progress = Math.pow(progressRaw, 0.62);  // 원본 Gamma 값 (0.62)
+      const tracking = 88 + progress * (-1 - 88);  // 원본 StartValue(88), EndValue(-1)
       const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
-      const x = 20;  // SideMargin
+      const x = 0;  // SideMargin (0)
       drawTrackedTextSimple(g, word, x, y, tracking);
     }
 
-    // 슬래시 비 (원본 스타일)
+    // 콤마 비 (원본 스타일)
     updateAndDrawParticles(p, g, st);
 
     // time step (원본 속도)
-    st.t += 0.028;
+    st.t += 0.02;
   };
 })();
 
