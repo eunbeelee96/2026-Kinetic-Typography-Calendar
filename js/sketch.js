@@ -14,6 +14,128 @@ const STATE = {};      // { '0': {...}, ... }
 const FONT_PATH = 'IPAMincho Regular.ttf';
 let loadedFont = null;
 
+/* ============= January (target 0) ============= */
+(() => {
+  // --- Settings for January ---
+  const SETTINGS = {
+    fg: "#000000",
+    bg: "#ffffff",
+    word: "january",
+    FontSize: 60,
+    TopMargin: 50,
+    BottomMargin: 50,
+    SideMargin: 20,
+    StartValue: 0,
+    EndValue: 180,
+    Duration: 3.2,
+    Delay: 0.05,
+    Distance: 56,
+    Speed: 0.02,
+    Gamma: 0.62,
+    Phase: 0,
+    RowPhase: 0.149,
+    DelayCurve: 0.62
+  };
+
+  const DOT_COUNT = 30;
+  const DOT_SIZE = 20;
+  const DOT_SPEED = 1.0;
+  const WIND_SCALE = 0.002;
+  const SWAY_FREQ = 1.5;
+
+  function initDots(p, g, st, n) {
+    st.dots = [];
+    for (let i = 0; i < n; i++) {
+      st.dots.push({
+        x: p.random(g.width),
+        y: p.random(-50, g.height),
+        theta: p.random(p.TWO_PI),
+        k: p.random(0.8, 1.2)
+      });
+    }
+  }
+
+  function drawTrackedText(g, str, x, y, tracking) {
+    let xpos = x;
+    for (let i = 0; i < str.length; i++) {
+      const ch = str[i];
+      g.text(ch, xpos, y);
+      xpos += g.textWidth(ch) + tracking;
+    }
+  }
+
+  function updateAndDrawDots(p, g, st) {
+    g.fill(SETTINGS.fg);
+    g.noStroke();
+    g.textSize(DOT_SIZE);
+
+    // 텍스트 영역 계산
+    const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
+    const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
+    const lastTextY = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance;
+    const textAreaBottom = lastTextY;
+
+    for (let i = 0; i < st.dots.length; i++) {
+      const d = st.dots[i];
+      const wind = p.noise(d.y * WIND_SCALE, (st.t + d.theta) * 0.2) - 0.5;
+      const sway = p.sin(d.theta + st.t * SWAY_FREQ) * 0.6;
+      const fall = (1.2 + 2.2 * Math.abs(p.sin(p.PI * (st.t / SETTINGS.Duration) * 0.6))) * DOT_SPEED * d.k;
+      d.x += wind * 3 + sway;
+      d.y += fall;
+
+      if (d.y > textAreaBottom) {
+        d.y = SETTINGS.TopMargin - 10;
+        d.x = p.random(g.width);
+      }
+      if (d.x < -10) d.x = g.width + 10;
+      if (d.x > g.width + 10) d.x = -10;
+
+      g.text('.', d.x, d.y);
+    }
+  }
+
+  drawFns['0'] = (p, g, st) => {
+    console.log("drawFns[0] 실행", g, st);
+    if (!st.inited) {
+      st.inited = true;
+      st.t = 0;
+      initDots(p, g, st, DOT_COUNT);
+      // 텍스트/폰트 초기화
+      g.textFont(loadedFont || 'serif');
+      g.textAlign(p.LEFT, p.CENTER);
+      g.pixelDensity(2);
+    }
+
+    g.background(SETTINGS.bg);
+
+    // kinetic text
+    g.fill(SETTINGS.fg);
+    g.noStroke();
+    g.textSize(SETTINGS.FontSize);
+    const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
+    const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
+    const phaseOff = SETTINGS.Phase * SETTINGS.Duration;
+
+    for (let idx = 0; idx < copies; idx++) {
+      const rowFrac = (copies > 1) ? idx / (copies - 1) : 0;
+      const curvedDelay = SETTINGS.Delay * Math.pow(rowFrac, SETTINGS.DelayCurve);
+      const timeWithDelay = (st.t + phaseOff + idx * SETTINGS.RowPhase) - curvedDelay;
+      const progressRaw = Math.abs(p.sin(p.PI * (timeWithDelay / SETTINGS.Duration) * 0.6));
+      const progress = Math.pow(progressRaw, SETTINGS.Gamma);
+      const tracking = SETTINGS.StartValue + progress * (SETTINGS.EndValue - SETTINGS.StartValue);
+      const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
+      const x = SETTINGS.SideMargin;
+      drawTrackedText(g, SETTINGS.word, x, y, tracking);
+    }
+
+    // flowing dots
+    updateAndDrawDots(p, g, st);
+
+    // time step
+    st.t += SETTINGS.Speed;
+  };
+})();
+
 /* ============= February (target 1) ============= */
 (() => {
   // --- Settings ---
@@ -108,83 +230,12 @@ let loadedFont = null;
 
     // time step
     st.t += 0.02;
-  }
-
-  function updateAndDrawDots(p, g, st) {
-    g.fill(SETTINGS.fg);
-    g.noStroke();
-    g.textSize(DOT_SIZE);
-
-    // 텍스트 영역 계산
-    const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
-    const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
-    const lastTextY = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance;
-    const textAreaBottom = lastTextY;
-
-    for (let i = 0; i < st.dots.length; i++) {
-      const d = st.dots[i];
-      const wind = p.noise(d.y * WIND_SCALE, (st.t + d.theta) * 0.2) - 0.5;
-      const sway = p.sin(d.theta + st.t * SWAY_FREQ) * 0.6;
-      const fall = (1.2 + 2.2 * Math.abs(p.sin(p.PI * (st.t / SETTINGS.Duration) * 0.6))) * DOT_SPEED * d.k;
-      d.x += wind * 3 + sway;
-      d.y += fall;
-
-      if (d.y > textAreaBottom) {
-        d.y = SETTINGS.TopMargin - 10;
-        d.x = p.random(g.width);
-      }
-      if (d.x < -10) d.x = g.width + 10;
-      if (d.x > g.width + 10) d.x = -10;
-
-      g.text('.', d.x, d.y);
-    }
-  }
-
-  drawFns['0'] = (p, g, st) => {
-    console.log("drawFns[0] 실행", g, st);
-    if (!st.inited) {
-      st.inited = true;
-      st.t = 0;
-      initDots(p, g, st, DOT_COUNT);
-      // 텍스트/폰트 초기화
-      g.textFont(loadedFont || 'serif');
-      g.textAlign(p.LEFT, p.CENTER);
-      g.pixelDensity(2);
-    }
-
-    g.background(SETTINGS.bg);
-
-    // kinetic text
-    g.fill(SETTINGS.fg);
-    g.noStroke();
-    g.textSize(SETTINGS.FontSize);
-    const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
-    const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
-    const phaseOff = SETTINGS.Phase * SETTINGS.Duration;
-
-    for (let idx = 0; idx < copies; idx++) {
-      const rowFrac = (copies > 1) ? idx / (copies - 1) : 0;
-      const curvedDelay = SETTINGS.Delay * Math.pow(rowFrac, SETTINGS.DelayCurve);
-      const timeWithDelay = (st.t + phaseOff + idx * SETTINGS.RowPhase) - curvedDelay;
-      const progressRaw = Math.abs(p.sin(p.PI * (timeWithDelay / SETTINGS.Duration) * 0.6));
-      const progress = Math.pow(progressRaw, SETTINGS.Gamma);
-      const tracking = SETTINGS.StartValue + progress * (SETTINGS.EndValue - SETTINGS.StartValue);
-      const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
-      const x = SETTINGS.SideMargin;
-      drawTrackedText(g, SETTINGS.word, x, y, tracking);
-    }
-
-    // flowing dots
-    updateAndDrawDots(p, g, st);
-
-    // time step
-    st.t += SETTINGS.Speed;
   };
 })();
 
-/* ============= Placeholders for 1~11 ============= */
+/* ============= Placeholders for 2~11 ============= */
 // 필요해지면 아래처럼 추가하세요:
-// drawFns['1'] = (p, g, st) => { /* February 코드 */ };
+// drawFns['2'] = (p, g, st) => { /* March 코드 */ };
 // ...
 // drawFns['11'] = (p, g, st) => { /* December 코드 */ };
 
