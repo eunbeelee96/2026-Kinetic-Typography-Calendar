@@ -59,6 +59,19 @@ let loadedFont = null;
     }
   }
 
+  function drawTrackedTextSimple(g, str, x, y, tracking) {
+    let xpos = x;
+    for (let i = 0; i < str.length; i++) {
+      const ch = str[i];
+      g.text(ch, xpos, y);
+      xpos += g.textWidth(ch) + tracking;
+    }
+  }
+
+  function triangle(x) {
+    return 1 - Math.abs(2 * (x - Math.floor(x)) - 1);
+  }
+
   drawFns['1'] = (p, g, st) => {
     if (!st.inited) {
       st.inited = true;
@@ -70,69 +83,31 @@ let loadedFont = null;
     }
 
     g.background(SETTINGS.bg);
-    // 메인 텍스트 렌더링
-    const fontSize   = sliders.FontSize.value();
-    const topMargin  = sliders.TopMargin.value();
-    const bottomMargin = sliders.BottomMargin.value();
-
-    const startValue = sliders.StartValue.value();
-    const endValue   = sliders.EndValue.value();
-    const duration   = max(0.001, sliders.Duration.value());
-    const delay      = sliders.Delay.value();
-    const distance   = sliders.Distance.value();
-    const timeStep   = sliders.Speed.value();
-
-    const gamma      = sliders.Gamma.value();
-    const phaseOff   = sliders.Phase.value() * duration;
-    const rowPhase   = sliders.RowPhase.value();
-    const delayCurve = sliders.DelayCurve.value();
-
-    g.textSize(fontSize);
-
-    const usableH = g.height - topMargin - bottomMargin;
-    const copies = constrain(floor(usableH / distance), 1, 1200);
-
+    
+    // 간단한 February 텍스트 (1월 스타일로)
+    g.fill(SETTINGS.fg);
+    g.noStroke();
+    g.textSize(60);
+    
+    const word = "february";
+    const usableH = g.height - 50 - 50;
+    const copies = Math.max(1, Math.floor(usableH / 50));
+    
     for (let idx = 0; idx < copies; idx++) {
-      const rowFrac = (copies>1) ? idx/(copies-1) : 0;
-      const curvedDelay = delay * pow(rowFrac, delayCurve);
-      const timeWithDelay = (t + phaseOff + idx * rowPhase) - curvedDelay;
-
-      const progressRaw = progressByMonth(currentMonth, timeWithDelay, duration);
-      const progress = pow(progressRaw, gamma);
-
-      const tracking = startValue + progress * (endValue - startValue);
-      const y = topMargin + idx * distance;
-
-      const totalW = trackedTextWidth(wordStr, tracking);
-      let x;
-
-      if (sliders.UseMonthGrid && sliders.UseMonthGrid.checked()) {
-        if (alignSelect && alignSelect.elt) alignSelect.elt.disabled = true;
-        x = startXFromAnchor(totalW);
-      } else {
-        if (alignSelect && alignSelect.elt) alignSelect.elt.disabled = false;
-        const align = alignSelect.value();
-        x = calculateCreativeAlignment(align, totalW, idx, timeWithDelay, y, sideMargin);
-      }
-
-      // 간단한 텍스트 렌더링
-      // console.log('drawTrackedText:', wordStr, x, y, tracking, 'fontSize:', fontSize, 'fg:', fgPicker.value());
-      g.push();
-      g.fill(fgPicker.value());
-      drawTrackedText(g, wordStr, x, y, tracking);
-      g.pop();
+      const timeWithDelay = st.t + idx * 0.1;
+      const progressRaw = triangle(timeWithDelay / 3.0);
+      const progress = Math.pow(progressRaw, 0.62);
+      const tracking = -10 + progress * (160 - (-10));
+      const y = 50 + idx * 50;
+      const x = 20;
+      drawTrackedTextSimple(g, word, x, y, tracking);
     }
 
-    if (!paused) t += timeStep;
+    // 콤마 비
+    updateAndDrawParticles(p, g, st);
 
-    if (recording) {
-      if (frameIndex <= maxFrames) {
-        saveCanvas(`frame_${nf(frameIndex, 4)}`, 'png');
-        frameIndex++;
-      } else {
-        recording = false;
-      }
-    }
+    // time step
+    st.t += 0.02;
   }
 
   function updateAndDrawDots(p, g, st) {
