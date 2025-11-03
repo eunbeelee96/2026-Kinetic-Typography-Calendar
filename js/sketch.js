@@ -144,7 +144,8 @@ let loadedFont = null;
     bg: "#ffffff",
     ParticleGlyph: ",",
     ParticleCount: 50,
-    ParticleSize: 45,
+    ParticleSize: 60,  // 텍스트와 같은 크기로 설정
+    TextSize: 60,      // 텍스트 크기 추가
     RainGravity: 0.45,
     RainWindAmp: 0.9,
     RainWindFreq: 0.7,
@@ -167,7 +168,7 @@ let loadedFont = null;
   function updateAndDrawParticles(p, g, st) {
     g.fill(SETTINGS.fg);
     g.noStroke();
-    g.textSize(SETTINGS.ParticleSize);
+    g.textSize(SETTINGS.ParticleSize);  // 다시 ParticleSize 사용  // ParticleSize 대신 텍스트와 같은 크기 사용
 
     for (let i = 0; i < st.particles.length; i++) {
       let pt = st.particles[i];
@@ -209,18 +210,18 @@ let loadedFont = null;
     // 간단한 February 텍스트 (1월 스타일로)
     g.fill(SETTINGS.fg);
     g.noStroke();
-    g.textSize(60);
+    g.textSize(SETTINGS.TextSize);  // 일관된 크기 사용  // 60 → 40으로 줄임
     
     const word = "february";
     const usableH = g.height - 50 - 50;
-    const copies = Math.max(1, Math.floor(usableH / 50));
+    const copies = Math.max(1, Math.floor(usableH / 40));  // distance도 40으로 조정
     
     for (let idx = 0; idx < copies; idx++) {
       const timeWithDelay = st.t + idx * 0.1;
       const progressRaw = triangle(timeWithDelay / 3.0);
       const progress = Math.pow(progressRaw, 0.62);
       const tracking = -10 + progress * (160 - (-10));
-      const y = 50 + idx * 50;
+      const y = 50 + idx * 40;  // 50 → 40으로 조정
       const x = 20;
       drawTrackedTextSimple(g, word, x, y, tracking);
     }
