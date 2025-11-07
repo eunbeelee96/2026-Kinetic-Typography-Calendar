@@ -479,7 +479,7 @@ window.addEventListener('DOMContentLoaded', () => {
     STATE[id] = {}; // 각 달별 상태 객체
   });
   // 디버깅: 1월(0번) 캔버스 항상 보이게
-  visible['0'] = true;
+  //visible['0'] = true;
 
   // MindAR target 이벤트 연결
   IDS.forEach(id => {
