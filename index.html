@@ -22,8 +22,30 @@
         dependencies: ["geometry", "material"],
         tick: function () {
           const mesh = this.el.getObject3D("mesh");
-          if (mesh && mesh.material && mesh.material.map) {
+          if (!mesh || !mesh.material) return;
+          // 기존 경로: map이 존재하면 needsUpdate
+          if (mesh.material.map) {
             mesh.material.map.needsUpdate = true;
+            return;
+          }
+          // 폴백: material.src에서 캔버스 id를 얻어 CanvasTexture 생성
+          try {
+            const matAttr = this.el.getAttribute('material') || {};
+            const src = matAttr.src || matAttr['src'];
+            if (src && typeof src === 'string' && src.startsWith('#')) {
+              const canvasId = src.slice(1);
+              const canvasEl = document.getElementById(canvasId);
+              if (canvasEl) {
+                // THREE.CanvasTexture 생성 후 할당
+                const tex = new THREE.CanvasTexture(canvasEl);
+                tex.needsUpdate = true;
+                mesh.material.map = tex;
+                mesh.material.needsUpdate = true;
+              }
+            }
+          } catch (e) {
+            // 안전하게 무시하되 콘솔에 로그
+            // console.warn('canvas-updater fallback failed', e);
           }
         },
       });
@@ -65,6 +87,9 @@
   <canvas id="canvas-10" class="month-canvas" width="850" height="1900"></canvas>
   <canvas id="canvas-11" class="month-canvas" width="850" height="1900"></canvas>
   <canvas id="canvas-12" class="month-canvas" width="850" height="1900"></canvas>
+
+  <!-- 디버그: 오른쪽 하단에 보이는 작은 캔버스 (p5가 실제로 그리는지 확인용) -->
+  <canvas id="canvas-debug" width="850" height="1900" style="display:block"></canvas>
 
     <!-- MindAR + A-Frame -->
     <a-scene

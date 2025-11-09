@@ -483,6 +483,19 @@ window.addEventListener('DOMContentLoaded', () => {
       c.style.backgroundColor = 'transparent';
     }
   });
+  // 디버그용 작은 가시 캔버스 (오른쪽 하단) — 페이지에서 p5가 실제로 그리는지 확인하기 위함
+  const dbg = document.getElementById('canvas-debug');
+  if (dbg) {
+    canvases['debug'] = dbg;
+    dbg.width = CANVAS_W / 6; // 축소 표시
+    dbg.height = CANVAS_H / 6;
+    dbg.style.position = 'fixed';
+    dbg.style.right = '8px';
+    dbg.style.bottom = '8px';
+    dbg.style.border = '1px solid rgba(255,255,255,0.6)';
+    dbg.style.zIndex = 9999;
+    dbg.style.background = 'rgba(255,255,255,0.02)';
+  }
   // 디버깅: 1월(0번) 캔버스 항상 보이게
   //visible['0'] = true;
 
@@ -514,7 +527,7 @@ function mainSketch(p) {
     // 오프스크린 그래픽 생성
     IDS.forEach(id => {
       const g = p.createGraphics(CANVAS_W, CANVAS_H);
-      g.pixelDensity(2); // 네 코드 유지
+      g.pixelDensity(1); // 네 코드 유지
       g.clear();
       layers[id] = g;
       // 기본 폰트/정렬(placeholder가 즉시 그리더라도 글꼴 세팅)
@@ -524,22 +537,49 @@ function mainSketch(p) {
   };
 
   p.draw = function () {
+    // 한 프레임 진입 로그 (디버그용 — 필요시 주석)
+    // console.log('p.draw frame', p.frameCount);
     // 보이는 타겟만 drawFn 호출
     IDS.forEach(id => {
-      if (visible[id] && drawFns[id]) {
-        drawFns[id](p, layers[id], STATE[id]);
+      if (visible[id]) {
+        if (drawFns[id]) {
+          // 호출 로그 (문제 재현 시 활성화)
+          // console.log('calling drawFn for', id);
+          try { drawFns[id](p, layers[id], STATE[id]); } catch (e) { console.error('drawFn error', id, e); }
+        } else {
+          // console.warn('no drawFn for', id);
+        }
       }
       // Graphics → HTMLCanvas 복사
-      blit(layers[id], canvases[id]);
+      try {
+        blit(layers[id], canvases[id]);
+      } catch (e) {
+        console.error('blit failed for', id, e);
+      }
     });
+
+    // debug canvas에 0번 레이어를 복사(디버깅용)
+    if (canvases['debug'] && layers['0']) {
+      try { blit(layers['0'], canvases['debug']); } catch (e) { /* noop */ }
+    }
   };
 }
 
 // Graphics → 실제 <canvas> 복사
 function blit(g, htmlCanvas) {
   if (!g || !htmlCanvas) return;
-  console.log("blit", g, htmlCanvas);
+  // 콘솔 로그는 필요할 때만 활성화하세요 — 매우 빈번합니다
+  // console.log("blit", g, htmlCanvas && htmlCanvas.id, htmlCanvas && htmlCanvas.width, htmlCanvas && htmlCanvas.height);
   const ctx = htmlCanvas.getContext('2d');
-  ctx.clearRect(0, 0, htmlCanvas.width, htmlCanvas.height);
-  ctx.drawImage(g.elt, 0, 0, htmlCanvas.width, htmlCanvas.height);
+  try {
+    ctx.clearRect(0, 0, htmlCanvas.width, htmlCanvas.height);
+    ctx.drawImage(g.elt, 0, 0, htmlCanvas.width, htmlCanvas.height);
+  } catch (err) {
+    // 캔버스 taint(CORS) 또는 빈 g.elt 문제 등 다양한 원인으로 drawImage 실패 가능
+    console.error('blit drawImage error for canvas', htmlCanvas && htmlCanvas.id, err);
+    // 더 많은 진단 정보 출력
+    try {
+      console.log('g.elt exists?', !!g.elt, 'g.width/height', g.width, g.height, 'htmlCanvas w/h', htmlCanvas.width, htmlCanvas.height);
+    } catch (e) {}
+  }
 }
