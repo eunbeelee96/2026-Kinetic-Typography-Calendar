@@ -1,38 +1,5 @@
 const drawFns = {};
 // ...existing code...
-    g.drawingContext.imageSmoothingEnabled = true;
-    for (let p of dots) {
-      // 빠른 하강 + 사선 흔들림 + 미세 바람
-      const wind = SETTINGS.SlashWindAmp * (g.noise((p.y + t * 110) * 0.002, (t + p.theta) * SETTINGS.SlashWindFreq) - 0.5);
-      const drift = SETTINGS.SlashDriftAmp * Math.sin(t * g.TWO_PI * SETTINGS.SlashDriftFreq + p.theta);
-      p.vx += (wind * 0.08 + drift * 0.02);
-      p.vy += SETTINGS.SlashGravity * 0.18 * p.k;
-      p.vy = Math.min(p.vy, SETTINGS.SlashTerminal * p.k);
-      p.x += p.vx;
-      p.y += p.vy;
-      // 래핑/리스폰 - 텍스트 마지막 줄과 맞춤
-      const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
-      const copies = g.constrain(Math.floor(usableH / SETTINGS.Distance), 1, 1200);
-      const lastRowY = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance + SETTINGS.FontSize;
-      const capY = lastRowY - (dotSprite ? dotSpriteBottomOffset : 0);
-      if (p.y > capY) {
-        p.y = 0 - SETTINGS.SlashSpawnTopPad;
-        p.x = g.random(0, g.width);
-        p.vx = g.random(-0.6, 0.6);
-        p.vy = g.random(2.0, 4.2);
-      }
-      if (p.x < -10)  p.x = g.width + 10;
-      if (p.x > g.width + 10) p.x = -10;
-      // 회전 각도: 낙하 속도 기반
-      p._angle = computeParticleAngle(p, g);
-      g.push();
-      const drawY = Math.min(p.y, capY);
-      g.translate(Math.round(p.x), Math.round(drawY));
-      if (p._angle !== 0) g.rotate(p._angle);
-      g.image(dotSprite, 0, 0);
-      g.pop();
-    }
-    g.pop();
 // ...existing code...
   function drawTrackedText(str, x, y, tracking, g) {
     g.noStroke();
