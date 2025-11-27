@@ -466,7 +466,7 @@ drawFns['3'] = (p, g, st) => {
     g.textFont(st.font || 'serif');
     g.textSize(19);
     g.textAlign(p.LEFT, p.CENTER);
-    // kinetic text (SVG 좌표 기반 + 웨이브)
+    // kinetic text (SVG 좌표 기반 + 웨이브, y좌표 정규화)
     const delay = 0.08;
     const delayCurve = 0.62;
     const rowPhase = 0.149;
@@ -475,13 +475,20 @@ drawFns['3'] = (p, g, st) => {
     const gamma = 0.45;
     const amplitude = 22;
     let t0 = st.t + phase;
+    // y좌표 정규화 파라미터 계산
+    const minY = Math.min(...st.svgTextData.map(d => d[1]));
+    const maxY = Math.max(...st.svgTextData.map(d => d[1]));
+    const pad = 24; // 위아래 여백(px)
+    const yScale = (g.height - pad * 2) / (maxY - minY);
     for (let i = 0; i < st.svgTextData.length; i++) {
       const [x, y, ch] = st.svgTextData[i];
       let row = Math.floor(i / 8);
       let tChar = t0 - (i % 8) * delayCurve * delay - row * rowPhase;
       let ease = Math.pow(Math.abs(Math.sin(tChar)), gamma);
       let yOffset = -ease * amplitude;
-      g.text(ch, x, y + yOffset);
+      // y좌표 정규화 적용
+      let normY = pad + (y - minY) * yScale;
+      g.text(ch, x, normY + yOffset);
     }
     // 콤마 rain
     g.textSize(44);
