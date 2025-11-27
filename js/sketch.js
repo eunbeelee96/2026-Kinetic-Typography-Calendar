@@ -474,7 +474,7 @@ drawFns['3'] = (p, g, st) => {
     const speed = 0.0025;
     const gamma = 0.45;
     const amplitude = 22;
-    let t0 = p.millis() * speed + phase;
+    let t0 = st.t + phase;
     for (let i = 0; i < st.svgTextData.length; i++) {
       const [x, y, ch] = st.svgTextData[i];
       let row = Math.floor(i / 8);
