@@ -393,41 +393,104 @@ drawFns['3'] = (p, g, st) => {
   }
 
   drawFns['1'] = (p, g, st) => {
+    // --- FEB kinetic text (행별 배치 + 웨이브 모션 + 콤마 rain) ---
     if (!st.inited) {
       st.inited = true;
       st.t = 0;
-      initParticles(p, g, st, SETTINGS.ParticleCount);
-      g.textFont(loadedFont || 'serif');
-      g.textAlign(p.LEFT, p.CENTER);
-      g.pixelDensity(2);
+      st.dots = [];
+      st.word = "february";
+      st.FontSize = 19;
+      st.TopMargin = 31;
+      st.Distance = 15.5;
+      st.SideMargin = 0;
+      st.Rows = 32; // 원하는 행 개수
+      st.Delay = 0.08;
+      st.DelayCurve = 0.62;
+      st.RowPhase = 0.149;
+      st.Phase = 0;
+      st.Speed = 0.0025;
+      st.Gamma = 0.45;
+      st.Amplitude = 22;
+      st.font = loadedFont;
+      st.ParticleGlyph = ',';
+      st.ParticleCount = 14;
+      st.SlashSpawnTopPad = 40;
+      // 콤마 rain 초기화
+      for (let i = 0; i < st.ParticleCount; i++) {
+        st.dots.push({
+          x: p.random(g.width),
+          y: p.random(0 - st.SlashSpawnTopPad, g.height),
+          vx: p.random(-0.6, 0.6),
+          vy: p.random(0.9, 1.7),
+          theta: p.random(p.TWO_PI),
+          rnd: p.random(-1, 1),
+          k: p.random(0.75, 1.35),
+          alpha: 255,
+        });
+      }
     }
-
-    g.background(SETTINGS.bg);
-    
-    // February 텍스트 (원본 스타일로)
-    g.fill(SETTINGS.fg);
+    g.background('#ffffff');
+    g.fill(0);
     g.noStroke();
-    g.textSize(SETTINGS.TextSize);  // 25px
-    
-    const word = "february";
-    const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
-    const copies = Math.max(1, Math.floor(usableH / SETTINGS.Distance));
-    
-    for (let idx = 0; idx < copies; idx++) {
-      const timeWithDelay = st.t + idx * 0.149;  // 원본 RowPhase 값 (0.149)
-      const progressRaw = triangle(timeWithDelay / 2.5);  // 원본 Duration 값 (2.5)
-      const progress = Math.pow(progressRaw, 0.62);  // 원본 Gamma 값 (0.62)
-      const tracking = 88 + progress * (-1 - 88);  // 원본 StartValue(88), EndValue(-1)
-      const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
-      const x = 0;  // SideMargin (0)
-      drawTrackedTextSimple(g, word, x, y, tracking);
+    g.textFont(st.font || 'serif');
+    g.textSize(st.FontSize);
+    g.textAlign(p.LEFT, p.CENTER);
+    // kinetic text (행별 배치 + 웨이브)
+    let t0 = p.millis() * st.Speed + st.Phase;
+    for (let row = 0; row < st.Rows; row++) {
+      let y = st.TopMargin + row * st.Distance;
+      let xpos = st.SideMargin;
+      for (let i = 0; i < st.word.length; i++) {
+        let tChar = t0 - i * st.DelayCurve * st.Delay - row * st.RowPhase;
+        let ease = Math.pow(Math.abs(Math.sin(tChar)), st.Gamma);
+        let yOffset = -ease * st.Amplitude;
+        g.text(st.word[i], xpos, y + yOffset);
+        xpos += g.textWidth(st.word[i]) + 0; // tracking 없음
+      }
     }
-
-    // 콤마 비 (원본 스타일)
-    updateAndDrawParticles(p, g, st);
-
-    // time step (원본 속도)
-    st.t += 0.02;
+    // 콤마 rain
+    g.textSize(44);
+    for (let pDot of st.dots) {
+      const wind = 0.5 * (p.noise(pDot.y * 0.002, st.t * 0.1) - 0.5);
+      const drift = 0.5 * Math.sin(st.t * p.TWO_PI * 0.1 + pDot.theta);
+      pDot.vx += wind * 0.08 + drift * 0.02;
+      pDot.vy += 0.5 * 0.07 * pDot.k;
+      pDot.vy = Math.min(pDot.vy, 8 * pDot.k);
+      pDot.x += pDot.vx;
+      pDot.y += pDot.vy;
+      if (pDot.vy < 0) {
+        pDot.alpha -= 7;
+      } else {
+        pDot.alpha = Math.min(pDot.alpha + 5, 255);
+      }
+      let febEndY = 666.5;
+      if (pDot.y > febEndY) {
+        pDot.y = febEndY;
+        pDot.vy = -p.random(2, 7);
+        pDot.vx += p.random(-0.2, 0.2);
+        pDot.alpha = 255;
+      }
+      if (pDot.alpha < 10) {
+        pDot.y = -20;
+        pDot.x = p.random(g.width);
+        pDot.vx = p.random(-0.6, 0.6);
+        pDot.vy = p.random(1.0, 2.2);
+        pDot.alpha = 255;
+      }
+      if (pDot.y > g.height + 20) {
+        pDot.y = -20; pDot.x = p.random(g.width);
+        pDot.vx = p.random(-0.6, 0.6); pDot.vy = p.random(2.0, 4.2);
+      }
+      if (pDot.x < -10) pDot.x = g.width + 10;
+      if (pDot.x > g.width + 10) pDot.x = -10;
+      const ang = pDot.theta + st.t * 0.8;
+      g.push();
+      g.translate(pDot.x, pDot.y);
+      g.rotate(ang);
+      g.text(st.ParticleGlyph, 0, 0);
+      g.pop();
+    }
+    st.t += 1/30;
   };
 })();
 
