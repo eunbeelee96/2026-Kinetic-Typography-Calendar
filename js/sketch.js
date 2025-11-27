@@ -477,7 +477,8 @@ window.addEventListener('DOMContentLoaded', () => {
     canvases[id] = document.getElementById(`canvas-${id}`);
     visible[id] = false;
     STATE[id] = {}; // 각 달별 상태 객체
-        if (c) {
+    const c = canvases[id];
+    if (c) {
       c.width  = CANVAS_W;   // ← 반드시 설정
       c.height = CANVAS_H;   // ← 반드시 설정
       c.style.backgroundColor = 'transparent';
