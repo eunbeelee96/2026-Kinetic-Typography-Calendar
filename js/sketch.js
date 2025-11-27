@@ -549,19 +549,7 @@ window.addEventListener('DOMContentLoaded', () => {
       c.style.backgroundColor = 'transparent';
     }
   });
-  // 디버그용 작은 가시 캔버스 (오른쪽 하단) — 페이지에서 p5가 실제로 그리는지 확인하기 위함
-  const dbg = document.getElementById('canvas-debug');
-  if (dbg) {
-    canvases['debug'] = dbg;
-    dbg.width = CANVAS_W / 6; // 축소 표시
-    dbg.height = CANVAS_H / 6;
-    dbg.style.position = 'fixed';
-    dbg.style.right = '8px';
-    dbg.style.bottom = '8px';
-    dbg.style.border = '1px solid rgba(255,255,255,0.6)';
-    dbg.style.zIndex = 9999;
-    dbg.style.background = 'rgba(255,255,255,0.02)';
-  }
+  // (canvas-debug 디버그 캔버스 제거)
   // 디버깅: 1월(0번) 캔버스 항상 보이게
   //visible['0'] = true;
 
