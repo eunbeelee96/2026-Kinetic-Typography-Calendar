@@ -41,7 +41,7 @@ drawFns['0'] = (p, g, st) => {
   }
   g.background(SETTINGS.bg);
   // kinetic text
-  g.fill(SETTINGS.fg);
+    g.fill('#888888'); // kinetic text 회색
   g.noStroke();
   g.textSize(SETTINGS.FontSize);
   g.textFont(st.font || 'serif');
@@ -453,7 +453,7 @@ drawFns['1'] = (p, g, st) => {
     }
   }
   g.background('#ffffff');
-  g.fill(0);
+    g.fill('#888888'); // kinetic text 회색
   g.noStroke();
   g.textFont(st.font || 'serif');
   g.textSize(19);
@@ -534,11 +534,9 @@ window.addEventListener('DOMContentLoaded', () => {
     visible[id] = false;
     STATE[id] = {}; // 각 달별 상태 객체
     const c = canvases[id];
-    if (c) {
-      c.width  = CANVAS_W;   // ← 반드시 설정
-      c.height = CANVAS_H;   // ← 반드시 설정
-      c.style.backgroundColor = 'transparent';
-    }
+    c.width  = CANVAS_W;   // ← 반드시 설정
+    c.height = CANVAS_H;   // ← 반드시 설정
+    c.style.backgroundColor = 'transparent';
   });
   // (canvas-debug 디버그 캔버스 제거)
   // 디버깅: 1월(0번) 캔버스 항상 보이게
