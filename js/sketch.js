@@ -619,29 +619,77 @@ drawFns['11'] = (p, g, st) => {
       g.text(letter, finalX, finalY);
     }
   }
-  // 해시 rain (slash rain)
+  // 해시 coldwind (바람 효과)
+  // coldwind 파라미터 (원본과 유사하게)
+  const windStrength = 3.0;
+  const windDirection = 25; // degree, 오른쪽 위로
+  const gustIntensity = 2.0;
+  const gustFrequency = 0.8;
+  st.gustTimer = (st.gustTimer || 0) + gustFrequency * 0.02;
+  const windAngle = p.radians(windDirection);
+  const baseWindX = p.cos(windAngle) * windStrength;
+  const baseWindY = p.sin(windAngle) * windStrength;
+  const gustPower = (p.sin(st.gustTimer) + p.sin(st.gustTimer * 1.7) + p.sin(st.gustTimer * 2.3)) / 3;
+  const gustMultiplier = 1 + gustPower * gustIntensity;
+  const breathingPhase = p.sin(st.t * 0.8) * 0.3 + p.sin(st.t * 1.2) * 0.2;
+  const breathingWindX = baseWindX * (1 + breathingPhase);
+  const breathingWindY = baseWindY * (1 + breathingPhase * 0.5);
+  const windForceX = breathingWindX * gustMultiplier;
+  const windForceY = breathingWindY * gustMultiplier;
   g.textFont(st.font || 'IPAMincho Regular');
   g.textSize(28);
   g.fill(SETTINGS.fg);
   g.textAlign(p.CENTER, p.BASELINE);
   for (let pDot of st.hashDots) {
-    const wind = SETTINGS.SlashWindAmp * (p.noise((pDot.y + st.t * 110) * 0.002, (st.t + pDot.theta) * SETTINGS.SlashWindFreq) - 0.5);
-    const drift = SETTINGS.SlashDriftAmp * Math.sin(st.t * p.TWO_PI * SETTINGS.SlashDriftFreq + pDot.theta);
-    pDot.vx += (wind * 0.08 + drift * 0.02);
-    pDot.vy += SETTINGS.SlashGravity * 0.18 * pDot.k;
-    pDot.vy = Math.min(pDot.vy, SETTINGS.SlashTerminal * pDot.k);
+    // 바람 효과 적용
+    pDot.vx += windForceX * 0.03;
+    pDot.vy += windForceY * 0.03;
+    // 돌풍 시 추가 랜덤 효과
+    if (Math.abs(gustPower) > 0.5) {
+      pDot.vx += (p.noise(pDot.x * 0.01, st.t * 0.5) - 0.5) * gustIntensity * 0.5;
+      pDot.vy += (p.noise(pDot.y * 0.01, st.t * 0.5 + 100) - 0.5) * gustIntensity * 0.3;
+    }
+    // 기본 중력 (약하게)
+    pDot.vy += SETTINGS.SlashGravity * 0.08 * pDot.k;
+    // 공기 저항
+    pDot.vx *= 0.98;
+    pDot.vy *= 0.98;
+    // 터미널 속도 제한
+    const maxSpeed = SETTINGS.SlashTerminal * pDot.k * 1.5;
+    const currentSpeed = Math.sqrt(pDot.vx * pDot.vx + pDot.vy * pDot.vy);
+    if (currentSpeed > maxSpeed) {
+      pDot.vx = (pDot.vx / currentSpeed) * maxSpeed;
+      pDot.vy = (pDot.vy / currentSpeed) * maxSpeed;
+    }
     pDot.x += pDot.vx;
     pDot.y += pDot.vy;
-    if (pDot.y > g.height + 10) {
+    // 래핑/리스폰 (바람 방향 고려)
+    if (pDot.y > g.height + 20) {
       pDot.y = 0 - SETTINGS.SlashSpawnTopPad;
       pDot.x = p.random(0, g.width);
-      pDot.vx = p.random(-0.6, 0.6);
-      pDot.vy = p.random(2.0, 4.2);
+      pDot.vx = baseWindX * 0.3 + p.random(-0.5, 0.5);
+      pDot.vy = p.random(1.0, 3.0);
     }
-    if (pDot.x < -10)  pDot.x = g.width + 10;
-    if (pDot.x > g.width + 10) pDot.x = -10;
+    if (windDirection > 0) {
+      if (pDot.x > g.width + 30) {
+        pDot.x = -20;
+        pDot.y = p.random(0, g.height * 0.8);
+      }
+    } else {
+      if (pDot.x < -30) {
+        pDot.x = g.width + 20;
+        pDot.y = p.random(0, g.height * 0.8);
+      }
+    }
+    if (pDot.x < -50) pDot.x = g.width + 30;
+    if (pDot.x > g.width + 50) pDot.x = -30;
+    // 해시 기호 그리기 (바람에 흔들리는 효과)
     g.push();
     g.translate(Math.round(pDot.x), Math.round(pDot.y));
+    const windRotation = Math.atan2(pDot.vy || 0, pDot.vx || 0) + Math.sin(st.t * 5 + pDot.theta) * 0.1;
+    g.rotate(windRotation);
+    const gustScale = 1 + Math.abs(gustPower) * 0.1;
+    g.scale(gustScale);
     g.text('#', 0, 0);
     g.pop();
   }
