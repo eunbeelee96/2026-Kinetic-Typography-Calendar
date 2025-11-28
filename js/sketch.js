@@ -86,127 +86,112 @@ let loadedFont = null;
   }
 
   // 실제 1번 타겟 렌더 함수
-  drawFns['1'] = (p, g, st) => {
-    if (!st.inited) {
-      st.inited = true;
-      st.t = 0;
-      initParticles(p, g, st, SETTINGS.ParticleCount);
-      g.textFont(loadedFont || 'serif');
-      g.textAlign(p.LEFT, p.CENTER);
-      g.pixelDensity(2);
-    }
+  // ===== FEB kinetic text (SVG 좌표 + 웨이브 모션) + 콤마 rain (함수 분리) =====
 
-    g.background(SETTINGS.bg);
-
-    // February 텍스트
-    g.fill(SETTINGS.fg);
+  function drawFEBText_p5(g, st, t) {
+    // 일정한 행 간격으로 kinetic text를 배치 (SVG 좌표 대신)
+    const word = 'february';
+    const FontSize = 19;
+    const TopMargin = 60;
+    const BottomMargin = 60;
+    const Distance = 32;
+    const amplitude = 7; // 흔들림 진폭 (작게)
+    const waveSpeed = 0.7; // 웨이브 속도 (느리게)
+    const gamma = 1.0; // 곡선 완화
+    const copies = Math.floor((g.height - TopMargin - BottomMargin) / Distance);
+    g.fill(0);
     g.noStroke();
-    g.textSize(SETTINGS.TextSize);
-
-    const word = "february";
-    const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
-    const copies = Math.max(1, Math.floor(usableH / SETTINGS.Distance));
-
+    g.textFont(st.font || 'IPAMincho Regular');
+    g.textSize(FontSize);
+    g.textAlign(g.LEFT, g.CENTER);
     for (let idx = 0; idx < copies; idx++) {
-      const timeWithDelay = st.t + idx * 0.149;     // RowPhase
-      const progressRaw = triangle(timeWithDelay / 2.5); // Duration
-      const progress = Math.pow(progressRaw, 0.62);      // Gamma
-      const tracking = 88 + progress * (-1 - 88);        // StartValue → EndValue
-      const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
-      const x = 0; // 왼쪽 정렬
-      drawTrackedTextSimple(g, word, x, y, tracking);
-    }
-
-    // 콤마 비
-    updateAndDrawParticles(p, g, st);
-
-    // 시간 진행
-    st.t += 0.02;
-  };
-})();
-
-
-// ---------- 부트스트랩 ----------
-window.addEventListener('DOMContentLoaded', () => {
-  // 캔버스 참조/가시성 초기화 (1번만)
-  IDS.forEach(id => {
-    const c = document.getElementById(`canvas-${id}`);
-    canvases[id] = c;
-    visible[id] = false;
-    STATE[id] = {};
-    if (c) {
-      c.width  = CANVAS_W;
-      c.height = CANVAS_H;
-      c.style.backgroundColor = 'transparent';
-    }
-  });
-
-  // MindAR target 이벤트 연결 (1번만)
-  IDS.forEach(id => {
-    const el = document.getElementById(`target-${id}`);
-    if (!el) return;
-    el.addEventListener('targetFound', () => { visible[id] = true; });
-    el.addEventListener('targetLost',  () => { visible[id] = false; });
-  });
-
-  // p5 시작
-  new p5(mainSketch);
-});
-
-
-// ---------- p5 인스턴스 ----------
-function mainSketch(p) {
-  p.preload = function () {
-    // 폰트 로드
-    loadedFont = p.loadFont(
-      FONT_PATH,
-      () => {},
-      () => console.warn('⚠️ 폰트 로드 실패:', FONT_PATH)
-    );
-  };
-
-  p.setup = function () {
-    p.frameRate(30);
-    // 오프스크린 그래픽 생성
-    IDS.forEach(id => {
-      const g = p.createGraphics(CANVAS_W, CANVAS_H);
-      g.pixelDensity(1);
-      g.clear();
-      layers[id] = g;
-      g.textFont(loadedFont || 'serif');
-      g.textAlign(p.LEFT, p.CENTER);
-    });
-  };
-
-  p.draw = function () {
-    IDS.forEach(id => {
-      if (visible[id]) {
-        if (drawFns[id]) {
-          try {
-            drawFns[id](p, layers[id], STATE[id]);
-          } catch (e) {
-            console.error('drawFn error', id, e);
-          }
-        }
+      const y = TopMargin + idx * Distance;
+      // 중앙정렬
+      let totalW = 0;
+      for (let i = 0; i < word.length; i++) totalW += g.textWidth(word[i]);
+      let tracking = 12;
+      totalW += tracking * (word.length - 1);
+      let x = g.width / 2 - totalW / 2;
+      let xpos = x;
+      for (let i = 0; i < word.length; i++) {
+        // 각 글자별로 부드러운 웨이브
+        let tChar = t * waveSpeed + i * 0.18 + idx * 0.12;
+        let ease = Math.pow(Math.abs(Math.sin(tChar)), gamma);
+        let yOffset = -ease * amplitude;
+        g.text(word[i], xpos, y + yOffset);
+        xpos += g.textWidth(word[i]) + tracking;
       }
-
-      try {
-        blit(layers[id], canvases[id]);
-      } catch (e) {
-        console.error('blit failed for', id, e);
-      }
-    });
-  };
-}
-
-// Graphics → 실제 <canvas> 복사
-function blit(g, htmlCanvas) {
-  if (!g || !htmlCanvas) return;
-  const ctx = htmlCanvas.getContext('2d');
-  try {
-    ctx.clearRect(0, 0, htmlCanvas.width, htmlCanvas.height);
-    ctx.drawImage(g.elt, 0, 0, htmlCanvas.width, htmlCanvas.height);
-  } catch (err) {
-    console.error('blit drawImage error for canvas', htmlCanvas && htmlCanvas.id, err);
+    }
   }
-}
+
+  function updateAndDrawCommas_p5(p, g, st) {
+    g.textSize(44);
+    g.fill(0);
+    for (let pDot of st.dots) {
+      const wind = 0.5 * (p.noise(pDot.y * 0.002, st.t * 0.1) - 0.5);
+      const drift = 0.5 * Math.sin(st.t * p.TWO_PI * 0.1 + pDot.theta);
+      pDot.vx += wind * 0.08 + drift * 0.02;
+      pDot.vy += 0.5 * 0.07 * pDot.k;
+      pDot.vy = Math.min(pDot.vy, 8 * pDot.k);
+      pDot.x += pDot.vx;
+      pDot.y += pDot.vy;
+      if (pDot.vy < 0) {
+        pDot.alpha -= 7;
+      } else {
+        pDot.alpha = Math.min(pDot.alpha + 5, 255);
+      }
+      let febEndY = 666.5;
+      if (pDot.y > febEndY) {
+        pDot.y = febEndY;
+        pDot.vy = -p.random(2, 7);
+        pDot.vx += p.random(-0.2, 0.2);
+        pDot.alpha = 255;
+      }
+      if (pDot.alpha < 10) {
+        pDot.y = -20;
+        pDot.x = p.random(g.width);
+        pDot.vx = p.random(-0.6, 0.6);
+        pDot.vy = p.random(1.0, 2.2);
+        pDot.alpha = 255;
+      }
+      if (pDot.y > g.height + 20) {
+        pDot.y = -20; pDot.x = p.random(g.width);
+        pDot.vx = p.random(-0.6, 0.6); pDot.vy = p.random(2.0, 4.2);
+      }
+      if (pDot.x < -10) pDot.x = g.width + 10;
+      if (pDot.x > g.width + 10) pDot.x = -10;
+      const ang = pDot.theta + st.t * 0.8;
+      g.push();
+      g.translate(pDot.x, pDot.y);
+      g.rotate(ang);
+      g.text(',', 0, 0);
+      g.pop();
+    }
+  }
+
+drawFns['1'] = (p, g, st) => {
+  if (!st.inited) {
+    st.inited = true;
+    st.t = 0;
+    st.dots = [];
+    st.font = loadedFont;
+    st.ParticleCount = 14;
+    st.SlashSpawnTopPad = 40;
+    for (let i = 0; i < st.ParticleCount; i++) {
+      st.dots.push({
+        x: p.random(g.width),
+        y: p.random(0 - st.SlashSpawnTopPad, g.height),
+        vx: p.random(-0.6, 0.6),
+        vy: p.random(0.9, 1.7),
+        theta: p.random(p.TWO_PI),
+        rnd: p.random(-1, 1),
+        k: p.random(0.75, 1.35),
+        alpha: 255,
+      });
+    }
+  }
+  g.background('#ffffff');
+  drawFEBText_p5(g, st, st.t);
+  updateAndDrawCommas_p5(p, g, st);
+  st.t += 1/30;
+};
