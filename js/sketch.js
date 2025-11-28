@@ -154,7 +154,7 @@ drawFns['2'] = (p, g, st) => {
     }
   }
   g.background('#ffffff');
-  g.fill(0);
+  g.fill('#cccccc'); // kinetic text 더 연한 회색
   g.noStroke();
   g.textFont(st.font || 'IPAMincho Regular');
   g.textSize(st.FontSize);
@@ -300,7 +300,7 @@ drawFns['3'] = (p, g, st) => {
   const S = st.SETTINGS;
   // kinetic header
   g.background(S.bg);
-  g.fill(S.fg);
+  g.fill('#cccccc'); // kinetic text 더 연한 회색
   g.textSize(S.FontSize);
   g.textFont(st.font || 'Suisse Intl Mono, Helvetica, Arial, monospace');
   const usableH = g.height - S.TopMargin - S.BottomMargin;
