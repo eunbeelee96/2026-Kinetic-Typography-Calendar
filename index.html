@@ -88,13 +88,23 @@
   <canvas id="canvas-11" class="month-canvas" width="850" height="1900"></canvas>
   <canvas id="canvas-12" class="month-canvas" width="850" height="1900"></canvas>
 
+  <!-- 디버그: 오른쪽 하단에 보이는 작은 캔버스 (p5가 실제로 그리는지 확인용) -->
+  <canvas id="canvas-debug" width="850" height="1900" style="display:block"></canvas>
 
     <!-- MindAR + A-Frame -->
-    <a-scene
-      mindar-image="imageTargetSrc: data/targets.mind; filterMinCF: 0.0005; filterBeta: 0.1;"
-      vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false"
-    >
+ <a-scene
+  mindar-image="
+    imageTargetSrc: data/targets.mind;
+    filterMinCF: 0.0005;
+    filterBeta: 0.1;
+    warmupTolerance: 5;
+    missTolerance: 5;
+    smoothingFactor: 0.75;
+  "
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false"
+>
+
   <a-camera look-controls="enabled: false" position="0 0 0"></a-camera>
   <!-- Global ambient light so PBR/standard materials show canvas textures even when targets are not found -->
   <a-light type="ambient" color="#ffffff"></a-light>
