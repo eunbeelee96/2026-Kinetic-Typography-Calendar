@@ -41,7 +41,7 @@ drawFns['0'] = (p, g, st) => {
   }
   g.background(SETTINGS.bg);
   // kinetic text
-      g.fill('#cccccc'); // kinetic text 더 연한 회색
+    g.fill('#888888'); // kinetic text 회색
   g.noStroke();
   g.textSize(SETTINGS.FontSize);
   g.textFont(st.font || 'serif');
@@ -133,7 +133,7 @@ drawFns['2'] = (p, g, st) => {
     st.Phase = 0;
     st.RowPhase = 0.05;
     st.DelayCurve = 1;
-    st.Amplitude = 18; // jitter 감소
+    st.Amplitude = 50;
     st.t = 0;
     // 콤마 rain 파티클 초기화
     st.dots = [];
@@ -154,7 +154,7 @@ drawFns['2'] = (p, g, st) => {
     }
   }
   g.background('#ffffff');
-  g.fill('#cccccc'); // kinetic text 더 연한 회색
+  g.fill(0);
   g.noStroke();
   g.textFont(st.font || 'IPAMincho Regular');
   g.textSize(st.FontSize);
@@ -166,7 +166,7 @@ drawFns['2'] = (p, g, st) => {
     let curvedDelay = st.Delay * Math.pow(rowFrac, st.DelayCurve);
     let timeWithDelay = (now + st.Phase + idx * st.RowPhase) - curvedDelay + st.Duration/2;
     let progressRaw = 1 - Math.abs(2 * fract(timeWithDelay / st.Duration) - 1);
-    let progress = Math.pow(progressRaw, 2.2); // jitter 감소를 위해 감마 완화
+    let progress = Math.pow(progressRaw, st.Gamma);
     let tracking = st.StartValue + progress * (st.EndValue - st.StartValue);
     let y = st.svgY[idx] + st.Amplitude * (progress - 0.5);
     // 중앙정렬
@@ -462,7 +462,7 @@ drawFns['1'] = (p, g, st) => {
   const delay = 0.08;
   const delayCurve = 0.62;
   const rowPhase = 0.149;
-        g.fill('#cccccc'); // kinetic text 더 연한 회색
+  const phase = 0;
   const speed = 0.0025;
   const gamma = 0.45;
   const amplitude = 22;
@@ -586,7 +586,7 @@ function mainSketch(p) {
     IDS.forEach(id => {
       if (visible[id]) {
         if (drawFns[id]) {
-      g.fill('#cccccc'); // kinetic text 더 연한 회색
+          // 호출 로그 (문제 재현 시 활성화)
           // console.log('calling drawFn for', id);
           try { drawFns[id](p, layers[id], STATE[id]); } catch (e) { console.error('drawFn error', id, e); }
         } else {
