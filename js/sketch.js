@@ -195,3 +195,4 @@ drawFns['1'] = (p, g, st) => {
   updateAndDrawCommas_p5(p, g, st);
   st.t += 1/30;
 };
+})();
