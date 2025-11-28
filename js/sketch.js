@@ -467,6 +467,14 @@ drawFns['3'] = (p, g, st) => {
     g.textSize(19);
     g.textAlign(p.LEFT, p.CENTER);
     // kinetic text (SVG 좌표 기반 + 웨이브, y좌표 정규화)
+    // --- 간격 조정 ---
+    const svgYs = st.svgTextData.map(d => d[1]);
+    const minY = Math.min(...svgYs);
+    const maxY = Math.max(...svgYs);
+    const pad = 40; // 위쪽 패딩 (기존보다 크게)
+    const bottomPad = 40; // 아래쪽 패딩 (기존보다 크게)
+    const availH = g.height - pad - bottomPad;
+    const yScale = availH / (maxY - minY);
     const delay = 0.08;
     const delayCurve = 0.62;
     const rowPhase = 0.149;
