@@ -652,6 +652,96 @@ drawFns['3'] = (p, g, st) => {
 
 // ---------- 부트스트랩 ----------
 window.addEventListener('DOMContentLoaded', () => {
+// ============= November (target 11, Slash Rain + Typography) =============
+drawFns['11'] = (p, g, st) => {
+  // Settings for November kinetic type + slash rain
+  const SETTINGS = {
+    word: '2026',
+    fg: '#000000',
+    bg: '#ffffff',
+    ParticleGlyph: '#',
+    ParticleCount: 32,
+    ParticleSize: 54,
+    TextSize: 110,
+    TopMargin: 110,
+    BottomMargin: 90,
+    Distance: 90,
+    RainGravity: 0.32,
+    RainWindAmp: 0.7,
+    RainWindFreq: 0.5,
+    RainTerminal: 10.0,
+    RainRespawnTopPad: 24
+  };
+  // State init
+  if (!st.inited) {
+    st.inited = true;
+    st.t = 0;
+    st.dots = [];
+    st.font = loadedFont;
+    // Particle 초기화
+    for (let i = 0; i < SETTINGS.ParticleCount; i++) {
+      st.dots.push({
+        x: p.random(g.width),
+        y: p.random(-SETTINGS.RainRespawnTopPad, g.height),
+        vx: p.random(-0.6, 0.6),
+        vy: p.random(1.2, 2.8),
+        theta: p.random(p.TWO_PI),
+        rnd: p.random(-1, 1),
+        k: p.random(0.75, 1.35),
+        alpha: 255
+      });
+    }
+  }
+  // Draw background
+  g.background(SETTINGS.bg);
+  // Draw kinetic type (gray text)
+  g.fill('#888888');
+  g.noStroke();
+  g.textFont(st.font || 'serif');
+  g.textSize(SETTINGS.TextSize);
+  g.textAlign(g.CENTER, g.CENTER);
+  // Centered horizontally, vertically offset by TopMargin
+  const x = g.width / 2;
+  const y = SETTINGS.TopMargin + SETTINGS.TextSize / 2;
+  // Simple kinetic effect: vertical wave
+  const tWave = st.t * 0.8;
+  for (let i = 0; i < SETTINGS.word.length; i++) {
+    const ch = SETTINGS.word[i];
+    const phase = i * 0.5;
+    const yOffset = Math.sin(tWave + phase) * 12;
+    g.text(ch, x - ((SETTINGS.word.length-1)/2 - i) * (SETTINGS.TextSize * 0.7), y + yOffset);
+  }
+  // Draw hash rain (black #)
+  g.fill(0);
+  g.textSize(SETTINGS.ParticleSize);
+  for (let pDot of st.dots) {
+    // Wind + drift
+    const wind = SETTINGS.RainWindAmp * (p.noise(pDot.y * 0.002, st.t * SETTINGS.RainWindFreq) - 0.5);
+    const drift = Math.sin(st.t * p.TWO_PI * SETTINGS.RainWindFreq + pDot.theta);
+    pDot.vx += wind * 0.08 + drift * 0.02;
+    pDot.vy += SETTINGS.RainGravity * 0.13 * pDot.k;
+    pDot.vy = Math.min(pDot.vy, SETTINGS.RainTerminal * pDot.k);
+    pDot.x += pDot.vx;
+    pDot.y += pDot.vy;
+    // Respawn if out of bounds
+    const capY = g.height - SETTINGS.BottomMargin;
+    if (pDot.y > capY) {
+      pDot.y = -SETTINGS.RainRespawnTopPad;
+      pDot.x = p.random(g.width);
+      pDot.vx = p.random(-0.6, 0.6);
+      pDot.vy = p.random(1.2, 2.8);
+    }
+    if (pDot.x < -10) pDot.x = g.width + 10;
+    if (pDot.x > g.width + 10) pDot.x = -10;
+    // Draw hash
+    g.push();
+    g.translate(pDot.x, pDot.y);
+    g.rotate(pDot.theta + st.t * 0.7);
+    g.text(SETTINGS.ParticleGlyph, 0, 0);
+    g.pop();
+  }
+  st.t += 1/30;
+};
   // 캔버스 참조/가시성 초기화
   IDS.forEach(id => {
     canvases[id] = document.getElementById(`canvas-${id}`);
