@@ -18,11 +18,11 @@ drawFns['0'] = (p, g, st) => {
     Duration: 2.5,
     Delay: 0.08,
     Distance: 20,
-    Speed: 0.015,
+    Speed: 0.012, // 느리게
     Gamma: 1,
     Phase: 0,
-    RowPhase: 0.12,
-    DelayCurve: 1
+    RowPhase: 0.07, // 완화
+    DelayCurve: 0.5 // 완화
   };
   if (!st.inited) {
     st.inited = true;
@@ -70,10 +70,10 @@ drawFns['0'] = (p, g, st) => {
   const textAreaBottom = lastTextY + SETTINGS.FontSize;
   const capY = textAreaBottom - 50; // DOT_SIZE/2
   for (let pDot of st.dots) {
-    const wind = p.noise(pDot.y * 0.002, (st.t + pDot.theta) * 0.2) - 0.5;
-    const sway = Math.sin(pDot.theta + st.t * 0.8) * 0.6;
+    const wind = (p.noise(pDot.y * 0.002, (st.t + pDot.theta) * 0.2) - 0.5) * 0.5; // 완화
+    const sway = Math.sin(pDot.theta + st.t * 0.8) * 0.25; // 완화
     const fall = (1.2 + 2.2 * Math.abs(Math.sin(p.PI * (st.t / SETTINGS.Duration) * 0.6))) * 1.1 * pDot.k;
-    pDot.x += wind * 3 + sway;
+    pDot.x += wind * 2 + sway;
     pDot.y += fall;
     if (pDot.y > capY) {
       pDot.y = SETTINGS.TopMargin - 10;
@@ -129,11 +129,11 @@ drawFns['2'] = (p, g, st) => {
     st.EndValue = 260;
     st.Duration = 4.0;
     st.Delay = 0.08;
-    st.Gamma = 3;
+    st.Gamma = 1.2; // 완화
     st.Phase = 0;
-    st.RowPhase = 0.05;
-    st.DelayCurve = 1;
-    st.Amplitude = 50;
+    st.RowPhase = 0.03; // 완화
+    st.DelayCurve = 0.4; // 완화
+    st.Amplitude = 18; // 완화
     st.t = 0;
     // 콤마 rain 파티클 초기화
     st.dots = [];
@@ -183,8 +183,8 @@ drawFns['2'] = (p, g, st) => {
   // 콤마 rain
   g.textSize(44);
   for (let pDot of st.dots) {
-    const wind = 0.5 * (p.noise(pDot.y * 0.002, st.t * 0.1) - 0.5);
-    const drift = 0.5 * Math.sin(st.t * p.TWO_PI * 0.1 + pDot.theta);
+    const wind = 0.18 * (p.noise(pDot.y * 0.002, st.t * 0.1) - 0.5); // 완화
+    const drift = 0.15 * Math.sin(st.t * p.TWO_PI * 0.1 + pDot.theta); // 완화
     pDot.vx += wind * 0.08 + drift * 0.02;
     pDot.vy += 0.5 * 0.07 * pDot.k;
     pDot.vy = Math.min(pDot.vy, 8 * pDot.k);
@@ -244,7 +244,7 @@ let loadedFont = null;
 // --- January / Dot flow version (fixed params, no UI) ---
 
 drawFns['3'] = (p, g, st) => {
-  // March kinetic header + slash rain
+  // Kinetic Type "2026" — MAR (slash rain)
   if (!st.inited) {
     st.inited = true;
     st.t = 382.595;
@@ -460,12 +460,12 @@ drawFns['1'] = (p, g, st) => {
   g.textAlign(p.LEFT, p.CENTER);
   // kinetic text (SVG 좌표 기반 + 웨이브)
   const delay = 0.08;
-  const delayCurve = 0.62;
-  const rowPhase = 0.149;
+  const delayCurve = 0.35; // 완화
+  const rowPhase = 0.07; // 완화
   const phase = 0;
-  const speed = 0.0025;
-  const gamma = 0.45;
-  const amplitude = 22;
+  const speed = 0.0018; // 느리게
+  const gamma = 0.7; // 완화
+  const amplitude = 12; // 완화
   let t0 = st.t + phase;
   for (let i = 0; i < st.svgTextData.length; i++) {
     const [x, y, ch] = st.svgTextData[i];
@@ -479,8 +479,8 @@ drawFns['1'] = (p, g, st) => {
   // 콤마 rain
   g.textSize(44);
   for (let pDot of st.dots) {
-    const wind = 0.5 * (p.noise(pDot.y * 0.002, st.t * 0.1) - 0.5);
-    const drift = 0.5 * Math.sin(st.t * p.TWO_PI * 0.1 + pDot.theta);
+    const wind = 0.2 * (p.noise(pDot.y * 0.002, st.t * 0.1) - 0.5); // 완화
+    const drift = 0.18 * Math.sin(st.t * p.TWO_PI * 0.1 + pDot.theta); // 완화
     pDot.vx += wind * 0.08 + drift * 0.02;
     pDot.vy += 0.5 * 0.07 * pDot.k;
     pDot.vy = Math.min(pDot.vy, 8 * pDot.k);
