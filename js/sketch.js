@@ -565,8 +565,9 @@ drawFns['3'] = (p, g, st) => {
       ];
     }
     g.background('#ffffff');
-    g.fill(0);
     g.noStroke();
+    // kinetic text (SVG 좌표 기반 + 웨이브, y좌표 정규화)
+    g.fill('#888888'); // 글씨는 회색
     g.textFont(st.font || 'serif');
     g.textSize(19);
     g.textAlign(p.LEFT, p.CENTER);
@@ -601,6 +602,8 @@ drawFns['3'] = (p, g, st) => {
     // 콤마 rain
     g.textSize(44);
     for (let pDot of st.dots) {
+      // 콤마 rain은 검정색
+      g.fill(0);
       const wind = 0.5 * (p.noise(pDot.y * 0.002, st.t * 0.1) - 0.5);
       const drift = 0.5 * Math.sin(st.t * p.TWO_PI * 0.1 + pDot.theta);
       pDot.vx += wind * 0.08 + drift * 0.02;
