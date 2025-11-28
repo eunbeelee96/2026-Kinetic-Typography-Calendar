@@ -117,17 +117,12 @@ drawFns['0'] = (p, g, st) => {
 // ...existing code...
 // --- March (target 2) / SVG y좌표 + 웨이브 모션 + comma rain ---
 
-// --- target 2: old February (SVG y좌표 + 웨이브 모션 + comma rain) ---
 drawFns['2'] = (p, g, st) => {
-  // 1회 초기화
+  // kinetic type: 각 행의 기준 y좌표를 SVG에서 추출한 값으로 두고, 그 기준에서만 살짝 움직임
   if (!st.inited) {
     st.inited = true;
-    st.t = 0;
-    st.dots = [];
-    st.dotSprite = null;
-    st.dotSpriteSize = 0;
     st.font = loadedFont;
-    st.SVG_Y = [41,51,61,71,81,91,101,111,121,131,141,151,161,171,181,191,201,211,221,231,241,251,261,271,281,291,301,311,321,331,341,351,361,371,381,391,401,411,421,431,441,451,461,471,481,491,501,511,521,531,541,551,561,571,581,591,601,611,621,631,641,651,661,671,681];
+    st.svgY = [41,51,61,71,81,91,101,111,121,131,141,151,161,171,181,191,201,211,221,231,241,251,261,271,281,291,301,311,321,331,341,351,361,371,381,391,401,411,421,431,441,451,461,471,481,491,501,511,521,531,541,551,561,571,581,591,601,611,621,631,641,651,661,671,681];
     st.word = "february";
     st.FontSize = 19;
     st.StartValue = 0;
@@ -139,36 +134,16 @@ drawFns['2'] = (p, g, st) => {
     st.RowPhase = 0.05;
     st.DelayCurve = 1;
     st.Amplitude = 50;
-    st.SlashSpawnTopPad = 40;
-    st.SlashWindAmp = 0.5;
-    st.SlashWindFreq = 0.1;
-    st.SlashDriftAmp = 0.5;
-    st.SlashDriftFreq = 0.1;
-    st.SlashGravity = 0.5;
-    st.SlashTerminal = 8;
-    // dots 초기화
-    for (let i = 0; i < 14; i++) {
-      st.dots.push({
-        x: p.random(g.width),
-        y: p.random(0 - st.SlashSpawnTopPad, g.height),
-        vx: p.random(-0.6, 0.6),
-        vy: p.random(0.9, 1.7),
-        theta: p.random(p.TWO_PI),
-        rnd: p.random(-1, 1),
-        k: p.random(0.75, 1.35),
-        alpha: 255,
-      });
-    }
+    st.t = 0;
   }
-  // kinetic text
   g.background('#ffffff');
   g.fill(0);
   g.noStroke();
   g.textFont(st.font || 'IPAMincho Regular');
   g.textSize(st.FontSize);
-  g.textAlign(g.LEFT, g.CENTER);
+  g.textAlign(p.LEFT, p.CENTER);
   let now = p.millis() / 1000;
-  let copies = st.SVG_Y.length;
+  let copies = st.svgY.length;
   for (let idx = 0; idx < copies; idx++) {
     let rowFrac = (copies > 1) ? idx / (copies - 1) : 0;
     let curvedDelay = st.Delay * Math.pow(rowFrac, st.DelayCurve);
@@ -176,7 +151,7 @@ drawFns['2'] = (p, g, st) => {
     let progressRaw = 1 - Math.abs(2 * fract(timeWithDelay / st.Duration) - 1);
     let progress = Math.pow(progressRaw, st.Gamma);
     let tracking = st.StartValue + progress * (st.EndValue - st.StartValue);
-    let y = st.SVG_Y[idx] + st.Amplitude * (progress - 0.5);
+    let y = st.svgY[idx] + st.Amplitude * (progress - 0.5);
     // 중앙정렬
     let totalW = 0;
     for (let i = 0; i < st.word.length; i++) totalW += g.textWidth(st.word[i]);
@@ -188,70 +163,6 @@ drawFns['2'] = (p, g, st) => {
       xpos += g.textWidth(st.word[i]) + tracking;
     }
   }
-  // comma rain
-  // dotSprite 생성
-  if (!st.dotSprite || st.dotSpriteSize !== 44) {
-    const glyphSize = 44;
-    const S2 = glyphSize * 2;
-    st.dotSpriteSize = glyphSize;
-    st.dotSprite = g.createGraphics(S2, S2);
-    st.dotSprite.pixelDensity(1);
-    st.dotSprite.clear();
-    st.dotSprite.noStroke();
-    st.dotSprite.fill(0);
-    st.dotSprite.textFont(st.font || 'IPAMincho Regular, serif');
-    st.dotSprite.textSize(glyphSize);
-    st.dotSprite.textAlign(g.CENTER, g.BASELINE);
-    const asc = st.dotSprite.textAscent(), desc = st.dotSprite.textDescent();
-    const baseY = (S2 - (asc + desc)) / 2 + asc;
-    st.dotSprite.text(',', S2 / 2, baseY);
-  }
-  g.push();
-  g.tint(0, 0, 0, 255);
-  for (let pDot of st.dots) {
-    const wind = st.SlashWindAmp * (p.noise(pDot.y * 0.002, st.t * st.SlashWindFreq) - 0.5);
-    const drift = st.SlashDriftAmp * Math.sin(st.t * p.TWO_PI * st.SlashDriftFreq + pDot.theta);
-    pDot.vx += wind * 0.08 + drift * 0.02;
-    pDot.vy += st.SlashGravity * 0.07 * pDot.k;
-    pDot.vy = Math.min(pDot.vy, st.SlashTerminal * pDot.k);
-    pDot.x += pDot.vx;
-    pDot.y += pDot.vy;
-    if (pDot.vy < 0) {
-      pDot.alpha -= 7;
-    } else {
-      pDot.alpha = Math.min(pDot.alpha + 5, 255);
-    }
-    let febEndY = 666.5;
-    if (pDot.y > febEndY) {
-      pDot.y = febEndY;
-      pDot.vy = -p.random(2, 7);
-      pDot.vx += p.random(-0.2, 0.2);
-      pDot.alpha = 255;
-    }
-    if (pDot.alpha < 10) {
-      pDot.y = -20;
-      pDot.x = p.random(g.width);
-      pDot.vx = p.random(-0.6, 0.6);
-      pDot.vy = p.random(1.0, 2.2);
-      pDot.alpha = 255;
-    }
-    if (pDot.y > g.height + 20) {
-      pDot.y = -20; pDot.x = p.random(g.width);
-      pDot.vx = p.random(-0.6, 0.6); pDot.vy = p.random(2.0, 4.2);
-    }
-    if (pDot.x < -10) pDot.x = g.width + 10;
-    if (pDot.x > g.width + 10) pDot.x = -10;
-    const ang = pDot.theta + st.t * 0.8;
-    g.push();
-    g.translate(pDot.x, pDot.y);
-    g.rotate(ang);
-    g.imageMode(g.CENTER);
-    g.tint(0, 0, 0, pDot.alpha);
-    g.image(st.dotSprite, 0, 0);
-    g.pop();
-  }
-  g.pop();
-  st.t += 1/30;
 };
 // ---------- 공통 설정 ----------
 const IDS = Array.from({ length: 12 }, (_, i) => i.toString()); // "0"..."11"
@@ -272,8 +183,8 @@ let loadedFont = null;
 /* ============= January (target 0) ============= */
 // --- January / Dot flow version (fixed params, no UI) ---
 
-// --- target 3: March (slash rain) ---
 drawFns['3'] = (p, g, st) => {
+  // March kinetic header + slash rain
   if (!st.inited) {
     st.inited = true;
     st.t = 382.595;
