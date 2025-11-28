@@ -118,7 +118,7 @@ drawFns['0'] = (p, g, st) => {
 // --- March (target 2) / SVG y좌표 + 웨이브 모션 + comma rain ---
 
 drawFns['2'] = (p, g, st) => {
-  // kinetic type: 각 행의 기준 y좌표를 SVG에서 추출한 값으로 두고, 그 기준에서만 살짝 움직임
+  // kinetic type: 각 행의 기준 y좌표를 SVG에서 추출한 값으로 두고, 그 기준에서만 살짝 움직임 + 콤마 rain
   if (!st.inited) {
     st.inited = true;
     st.font = loadedFont;
@@ -135,6 +135,23 @@ drawFns['2'] = (p, g, st) => {
     st.DelayCurve = 1;
     st.Amplitude = 50;
     st.t = 0;
+    // 콤마 rain 파티클 초기화
+    st.dots = [];
+    st.ParticleGlyph = ',';
+    st.ParticleCount = 14;
+    st.SlashSpawnTopPad = 40;
+    for (let i = 0; i < st.ParticleCount; i++) {
+      st.dots.push({
+        x: p.random(g.width),
+        y: p.random(0 - st.SlashSpawnTopPad, g.height),
+        vx: p.random(-0.6, 0.6),
+        vy: p.random(0.9, 1.7),
+        theta: p.random(p.TWO_PI),
+        rnd: p.random(-1, 1),
+        k: p.random(0.75, 1.35),
+        alpha: 255,
+      });
+    }
   }
   g.background('#ffffff');
   g.fill(0);
@@ -163,6 +180,49 @@ drawFns['2'] = (p, g, st) => {
       xpos += g.textWidth(st.word[i]) + tracking;
     }
   }
+  // 콤마 rain
+  g.textSize(44);
+  for (let pDot of st.dots) {
+    const wind = 0.5 * (p.noise(pDot.y * 0.002, st.t * 0.1) - 0.5);
+    const drift = 0.5 * Math.sin(st.t * p.TWO_PI * 0.1 + pDot.theta);
+    pDot.vx += wind * 0.08 + drift * 0.02;
+    pDot.vy += 0.5 * 0.07 * pDot.k;
+    pDot.vy = Math.min(pDot.vy, 8 * pDot.k);
+    pDot.x += pDot.vx;
+    pDot.y += pDot.vy;
+    if (pDot.vy < 0) {
+      pDot.alpha -= 7;
+    } else {
+      pDot.alpha = Math.min(pDot.alpha + 5, 255);
+    }
+    let febEndY = 666.5;
+    if (pDot.y > febEndY) {
+      pDot.y = febEndY;
+      pDot.vy = -p.random(2, 7);
+      pDot.vx += p.random(-0.2, 0.2);
+      pDot.alpha = 255;
+    }
+    if (pDot.alpha < 10) {
+      pDot.y = -20;
+      pDot.x = p.random(g.width);
+      pDot.vx = p.random(-0.6, 0.6);
+      pDot.vy = p.random(1.0, 2.2);
+      pDot.alpha = 255;
+    }
+    if (pDot.y > g.height + 20) {
+      pDot.y = -20; pDot.x = p.random(g.width);
+      pDot.vx = p.random(-0.6, 0.6); pDot.vy = p.random(2.0, 4.2);
+    }
+    if (pDot.x < -10) pDot.x = g.width + 10;
+    if (pDot.x > g.width + 10) pDot.x = -10;
+    const ang = pDot.theta + st.t * 0.8;
+    g.push();
+    g.translate(pDot.x, pDot.y);
+    g.rotate(ang);
+    g.text(st.ParticleGlyph, 0, 0);
+    g.pop();
+  }
+  st.t += 1/30;
 };
 // ---------- 공통 설정 ----------
 const IDS = Array.from({ length: 12 }, (_, i) => i.toString()); // "0"..."11"
