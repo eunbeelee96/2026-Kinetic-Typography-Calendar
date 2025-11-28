@@ -521,10 +521,132 @@ drawFns['1'] = (p, g, st) => {
 };
 
 /* ============= Placeholders for 2~11 ============= */
-// 필요해지면 아래처럼 추가하세요:
-// drawFns['2'] = (p, g, st) => { /* March 코드 */ };
-// ...
-// drawFns['11'] = (p, g, st) => { /* December 코드 */ };
+
+// ========== NOVEMBER (target 11) ========== //
+drawFns['11'] = (p, g, st) => {
+  // --- Settings ---
+  const SETTINGS = {
+    fg: '#000000',
+    bg: '#ffffff',
+    ParticleGlyph: '#',
+    SlashGravity: 0.25,
+    SlashDriftAmp: 0.6,
+    SlashDriftFreq: 0.9,
+    SlashWindAmp: 0.35,
+    SlashWindFreq: 0.55,
+    SlashTerminal: 12.0,
+    SlashSpawnTopPad: 18,
+    Speed: 0.001,
+    FontSize: 27,
+    TopMargin: 0,
+    BottomMargin: 0,
+    SideMargin: 29,
+    StartValue: -34,
+    EndValue: 47,
+    Duration: 1.85,
+    Delay: 0.08,
+    Distance: 37,
+    Gamma: 0.68,
+    Phase: 0,
+    RowPhase: 0,
+    DelayCurve: 1
+  };
+  if (!st.inited) {
+    st.inited = true;
+    st.t = 0;
+    st.dots = [];
+    st.font = loadedFont;
+    st.word = 'november';
+    st.hashDots = [];
+    st.hashPhase = 0;
+    st.hashSprite = null;
+    st.hashSpriteSize = 0;
+    // 해시 파티클 초기화
+    for (let i = 0; i < 25; i++) {
+      st.hashDots.push({
+        x: p.random(g.width),
+        y: p.random(0 - SETTINGS.SlashSpawnTopPad, g.height),
+        theta: p.random(p.TWO_PI),
+        k: p.random(0.75, 1.35),
+        vx: p.random(-0.6, 0.6),
+        vy: p.random(2.2, 5.0),
+        rnd: p.random(-1, 1),
+        _angle: 0
+      });
+    }
+  }
+  // 배경
+  g.background(SETTINGS.bg);
+  // kinetic text (SVG 좌표 기반, 부드러운 모션)
+  g.noStroke();
+  g.fill('#cccccc');
+  g.textFont(st.font || 'IPAMincho Regular');
+  g.textSize(SETTINGS.FontSize);
+  g.textAlign(p.LEFT, p.CENTER);
+  // SVG에서 추출한 각 행의 좌표 데이터 (간략화)
+  const svgData = [
+    {baseX: 39.91, baseY: 80.00, letters: [ {x:0.00,y:-72.98},{x:35.80,y:-63.46},{x:71.60,y:-48.26},{x:107.40,y:-28.76},{x:143.20,y:-6.68},{x:178.99,y:15.99},{x:214.79,y:37.23},{x:250.59,y:55.15} ]},
+    {baseX: 55.72, baseY: 140.00, letters: [ {x:0.00,y:-61.10},{x:33.54,y:-45.01},{x:67.08,y:-24.91},{x:100.62,y:-2.58},{x:134.16,y:19.99},{x:167.70,y:40.76},{x:201.24,y:57.90},{x:234.78,y:69.86} ]},
+    {baseX: 70.95, baseY: 200.00, letters: [ {x:0.00,y:-41.63},{x:31.36,y:-20.99},{x:62.73,y:1.54},{x:94.09,y:23.92},{x:125.46,y:44.17},{x:156.82,y:60.48},{x:188.19,y:71.38},{x:219.55,y:75.90} ]},
+    {baseX: 82.78, baseY: 260.00, letters: [ {x:0.00,y:-17.00},{x:29.67,y:5.65},{x:59.35,y:27.79},{x:89.02,y:47.46},{x:118.70,y:62.88},{x:148.37,y:72.69},{x:178.04,y:76.00},{x:207.72,y:72.52} ]},
+    {baseX: 89.79, baseY: 320.00, letters: [ {x:0.00,y:9.74},{x:28.67,y:31.58},{x:57.35,y:50.60},{x:86.02,y:65.10},{x:114.69,y:73.78},{x:143.37,y:75.87},{x:172.04,y:71.19},{x:200.71,y:60.15} ]},
+    {baseX: 96.82, baseY: 380.00, letters: [ {x:0.00,y:35.27},{x:27.67,y:53.59},{x:55.34,y:67.12},{x:83.00,y:74.66},{x:110.67,y:75.52},{x:138.34,y:69.64},{x:166.01,y:57.54},{x:193.68,y:40.30} ]},
+    {baseX: 82.05, baseY: 440.00, letters: [ {x:0.00,y:56.43},{x:26.56,y:68.95},{x:53.12,y:75.32},{x:79.68,y:74.96},{x:106.24,y:67.90},{x:132.80,y:54.77},{x:159.35,y:36.76},{x:185.91,y:15.46} ]},
+    {baseX: 51.27, baseY: 500.00, letters: [ {x:0.00,y:70.58},{x:25.54,y:75.76},{x:51.08,y:74.17},{x:76.61,y:65.95},{x:102.15,y:51.84},{x:127.69,y:33.10},{x:153.23,y:11.41},{x:178.77,y:-11.31} ]},
+    {baseX: 37.91, baseY: 560.00, letters: [ {x:0.00,y:75.97},{x:24.77,y:73.16},{x:49.54,y:63.81},{x:74.32,y:48.76},{x:99.09,y:29.35},{x:123.86,y:7.32},{x:148.63,y:-15.36},{x:173.41,y:-36.67} ]},
+    {baseX: 47.47, baseY: 620.00, letters: [ {x:0.00,y:71.94},{x:24.32,y:61.48},{x:48.64,y:45.53},{x:72.97,y:25.51},{x:97.29,y:3.22},{x:121.61,y:-19.36},{x:145.93,y:-40.22},{x:170.26,y:-57.48} ]},
+    {baseX: 78.56, baseY: 680.00, letters: [ {x:0.00,y:58.97},{x:24.10,y:42.17},{x:48.20,y:21.60},{x:72.30,y:-0.90},{x:96.39,y:-23.31},{x:120.49,y:-43.65},{x:144.59,y:-60.09},{x:168.69,y:-71.15} ]},
+    {baseX: 123.34, baseY: 740.00, letters: [ {x:0.00,y:38.69},{x:23.88,y:17.63},{x:47.76,y:-5.01},{x:71.64,y:-27.19},{x:95.52,y:-46.95},{x:119.40,y:-62.52},{x:143.28,y:-72.50},{x:167.16,y:-76.00} ]}
+  ];
+  const globalTime = p.millis() * 0.002;
+  const breathingAmp = 15;
+  const waveAmp = 10;
+  for (let rowIndex = 0; rowIndex < svgData.length; rowIndex++) {
+    const row = svgData[rowIndex];
+    const rowPhase = rowIndex * 0.3;
+    const rowTime = globalTime + rowPhase;
+    const rowBreathing = Math.sin(rowTime * 1.2) * breathingAmp;
+    const rowWave = Math.sin(rowTime * 1.8 + rowIndex * 0.4) * waveAmp;
+    for (let letterIndex = 0; letterIndex < st.word.length && letterIndex < row.letters.length; letterIndex++) {
+      const letter = st.word[letterIndex];
+      const letterPos = row.letters[letterIndex];
+      const letterPhase = letterIndex * 0.2;
+      const letterTime = globalTime + rowPhase + letterPhase;
+      const letterJitter = Math.sin(letterTime * 2.2) * 4;
+      const letterFloat = Math.cos(letterTime * 1.5 + letterIndex * 0.5) * 3;
+      const finalX = row.baseX + letterPos.x + letterJitter;
+      const finalY = row.baseY + letterPos.y + rowBreathing + rowWave + letterFloat;
+      g.text(letter, finalX, finalY);
+    }
+  }
+  // 해시 rain (slash rain)
+  g.textFont(st.font || 'IPAMincho Regular');
+  g.textSize(28);
+  g.fill(SETTINGS.fg);
+  g.textAlign(p.CENTER, p.BASELINE);
+  for (let pDot of st.hashDots) {
+    const wind = SETTINGS.SlashWindAmp * (p.noise((pDot.y + st.t * 110) * 0.002, (st.t + pDot.theta) * SETTINGS.SlashWindFreq) - 0.5);
+    const drift = SETTINGS.SlashDriftAmp * Math.sin(st.t * p.TWO_PI * SETTINGS.SlashDriftFreq + pDot.theta);
+    pDot.vx += (wind * 0.08 + drift * 0.02);
+    pDot.vy += SETTINGS.SlashGravity * 0.18 * pDot.k;
+    pDot.vy = Math.min(pDot.vy, SETTINGS.SlashTerminal * pDot.k);
+    pDot.x += pDot.vx;
+    pDot.y += pDot.vy;
+    if (pDot.y > g.height + 10) {
+      pDot.y = 0 - SETTINGS.SlashSpawnTopPad;
+      pDot.x = p.random(0, g.width);
+      pDot.vx = p.random(-0.6, 0.6);
+      pDot.vy = p.random(2.0, 4.2);
+    }
+    if (pDot.x < -10)  pDot.x = g.width + 10;
+    if (pDot.x > g.width + 10) pDot.x = -10;
+    g.push();
+    g.translate(Math.round(pDot.x), Math.round(pDot.y));
+    g.text('#', 0, 0);
+    g.pop();
+  }
+  st.t += SETTINGS.Speed;
+};
 
 // ---------- 부트스트랩 ----------
 window.addEventListener('DOMContentLoaded', () => {
