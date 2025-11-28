@@ -1,3 +1,113 @@
+// ============= January (target 0, Dot Flow version) =============
+(() => {
+  const SETTINGS = {
+    word: "JANUARY",
+    fg: "#000000",
+    bg: "#ffffff",
+    FontSize: 18,
+    TopMargin: 12,
+    BottomMargin: 12,
+    SideMargin: 20,
+    StartValue: 0,
+    EndValue: 130,
+    Duration: 2.5,
+    Delay: 0.08,
+    Distance: 20,
+    Speed: 0.015,
+    Gamma: 1,
+    Phase: 0,
+    RowPhase: 0.12,
+    DelayCurve: 1
+  };
+  const DOT_COUNT = 8;
+  const DOT_SIZE = 100;
+  const DOT_SPEED = 1.1;
+  const WIND_SCALE = 0.002;
+  const SWAY_FREQ = 0.8;
+
+  drawFns['0'] = (p, g, st) => {
+    if (!st.inited) {
+      st.inited = true;
+      st.t = 0;
+      st.dots = [];
+      st.font = loadedFont;
+      // Dot 초기화
+      for (let i = 0; i < DOT_COUNT; i++) {
+        st.dots.push({
+          x: p.random(g.width),
+          y: p.random(g.height),
+          theta: p.random(p.TWO_PI),
+          k: p.random(0.6, 1.4)
+        });
+      }
+    }
+        g.background(SETTINGS.bg);
+        // kinetic text
+        g.fill('#888888'); // 글씨는 회색
+        g.noStroke();
+        g.textFont(st.font || 'serif');
+        g.textSize(SETTINGS.FontSize);
+        g.textAlign(p.LEFT, p.CENTER);
+    const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
+    const copies = p.constrain(Math.floor(usableH / SETTINGS.Distance), 1, 1200);
+    const phaseOff = SETTINGS.Phase * SETTINGS.Duration;
+    for (let idx = 0; idx < copies; idx++) {
+      const rowFrac = (copies > 1) ? idx / (copies - 1) : 0;
+      const curvedDelay = SETTINGS.Delay * Math.pow(rowFrac, SETTINGS.DelayCurve);
+      const timeWithDelay = (st.t + phaseOff + idx * SETTINGS.RowPhase) - curvedDelay;
+      const progressRaw = Math.abs(Math.sin(p.PI * (timeWithDelay / SETTINGS.Duration) * 0.6));
+      const progress = Math.pow(progressRaw, SETTINGS.Gamma);
+      const tracking = SETTINGS.StartValue + progress * (SETTINGS.EndValue - SETTINGS.StartValue);
+      const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
+      const totalW = trackedTextWidth_p5(SETTINGS.word, tracking, g);
+      const x = SETTINGS.SideMargin;
+      drawTrackedText_p5(g, SETTINGS.word, x, y, tracking);
+    }
+    // flowing dots
+    updateAndDrawDots_p5(p, g, st, SETTINGS, DOT_SIZE, DOT_SPEED, WIND_SCALE, SWAY_FREQ);
+    st.t += SETTINGS.Speed;
+  };
+
+  // --- helpers (p5용) ---
+  function drawTrackedText_p5(g, str, x, y, tracking) {
+    let xpos = x;
+    for (let i = 0; i < str.length; i++) {
+      g.text(str[i], xpos, y);
+      xpos += g.textWidth(str[i]) + tracking;
+    }
+  }
+  function trackedTextWidth_p5(str, tracking, g) {
+    let w = 0;
+    for (let i = 0; i < str.length; i++) w += g.textWidth(str[i]);
+    return w + tracking * (str.length - 1);
+  }
+  function updateAndDrawDots_p5(p, g, st, SETTINGS, DOT_SIZE, DOT_SPEED, WIND_SCALE, SWAY_FREQ) {
+    g.fill(SETTINGS.fg);
+        g.fill(0); // 점(dot)은 검정색
+    g.noStroke();
+    g.textSize(DOT_SIZE);
+    const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
+    const copies = p.constrain(Math.floor(usableH / SETTINGS.Distance), 1, 1200);
+    const lastTextY = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance;
+    const textAreaBottom = lastTextY + SETTINGS.FontSize;
+    const capY = textAreaBottom - DOT_SIZE * 0.5;
+    for (let pt of st.dots) {
+      const wind = p.noise(pt.y * WIND_SCALE, (st.t + pt.theta) * 0.2) - 0.5;
+      const sway = Math.sin(pt.theta + st.t * SWAY_FREQ) * 0.6;
+      const fall = (1.2 + 2.2 * Math.abs(Math.sin(p.PI * (st.t / SETTINGS.Duration) * 0.6))) * DOT_SPEED * pt.k;
+      pt.x += wind * 3 + sway;
+      pt.y += fall;
+      if (pt.y > capY) {
+        pt.y = SETTINGS.TopMargin - 10;
+        pt.x = p.random(g.width);
+      }
+      if (pt.x < -10) pt.x = g.width + 10;
+      if (pt.x > g.width + 10) pt.x = -10;
+      const yDraw = Math.min(pt.y, capY);
+      g.text('.', pt.x, yDraw);
+    }
+  }
+})();
 const drawFns = {};
 // ...existing code...
 // ...existing code...
@@ -204,12 +314,6 @@ drawFns['3'] = (p, g, st) => {
       bg: '#ffffff',
       align: 'left',
       FontSize: 25,
-      TopMargin: 6,
-      BottomMargin: 0,
-      SideMargin: 20,
-      StartValue: 300,
-      EndValue: 26,
-      Duration: 1.52,
       Delay: 0.3,
       Distance: 39,
       Speed: 0.015,
