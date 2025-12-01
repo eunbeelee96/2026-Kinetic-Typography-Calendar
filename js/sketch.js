@@ -1,3 +1,146 @@
+// ========== DECEMBER (target 12) ========== //
+drawFns['12'] = (p, g, st) => {
+  // --- Settings ---
+  const SETTINGS = {
+    fg: '#000000',
+    bg: '#ffffff',
+    StarGlyph: '*',
+    FontSize: 16,
+    BigStarSize: 60,
+    SmallStarSize: 36,
+    StarCount: 25,
+    BigStarBlink: 2.0,
+    SmallStarBlink: 3.0
+  };
+  if (!st.inited) {
+    st.inited = true;
+    st.t = 0;
+    st.stars = [];
+    st.bigStar = {
+      x: g.width * 0.5,
+      y: g.height * 0.01,
+      size: SETTINGS.BigStarSize,
+      blinkPhase: 0,
+      blinkSpeed: SETTINGS.BigStarBlink
+    };
+    // 별 초기화 (DECEMBER 텍스트 영역 피해서)
+    for (let i = 0; i < SETTINGS.StarCount; i++) {
+      let x, y, attempts = 0;
+      do {
+        x = p.random(20, g.width - 20);
+        y = p.random(g.height * 0.15, g.height - 20);
+        attempts++;
+        // 텍스트 중앙 영역 피하기
+        const textCenterX = g.width / 2;
+        const textCenterY = g.height * 0.12;
+        const textWidth = g.width * 0.6;
+        const textHeight = g.height * 0.08;
+        const inTextArea = (
+          x > textCenterX - textWidth/2 &&
+          x < textCenterX + textWidth/2 &&
+          y > textCenterY - textHeight/2 &&
+          y < textCenterY + textHeight/2
+        );
+        if (!inTextArea || attempts >= 50) break;
+      } while (true);
+      st.stars.push({
+        x,
+        y,
+        blinkPhase: p.random(p.TWO_PI),
+        blinkSpeed: p.random(1.2, 5.0),
+        baseSize: p.random(0.5, 1.0),
+        twinkleAmp: p.random(0.25, 0.3)
+      });
+    }
+  }
+  // 배경
+  g.background(SETTINGS.bg);
+  // --- 중앙 big star ---
+  let col = p.color(SETTINGS.fg);
+  g.push();
+  g.textAlign(p.CENTER, p.CENTER);
+  g.noStroke();
+  st.bigStar.blinkPhase += st.bigStar.blinkSpeed * 0.1;
+  const bigBlink = 0.3 + 0.7 * (0.5 + 0.5 * p.sin(st.bigStar.blinkPhase));
+  g.textSize(st.bigStar.size);
+  g.fill(p.red(col), p.green(col), p.blue(col), 255 * bigBlink);
+  g.text(SETTINGS.StarGlyph, st.bigStar.x, st.bigStar.y);
+  g.pop();
+  // --- 작은 별들(눈송이) ---
+  for (let i = 0; i < st.stars.length; i++) {
+    let pStar = st.stars[i];
+    // Y축으로 천천히 내림, X축으로 살짝 흔들림
+    pStar.y += 0.7 + 0.5 * p.sin(st.t * 0.7 + i);
+    pStar.x += p.sin(st.t * 0.5 + i * 0.3) * 0.3;
+    // 아래로 벗어나면 위로 리스폰
+    if (pStar.y > g.height + 20) {
+      pStar.y = p.random(-30, -10);
+      pStar.x = p.random(20, g.width - 20);
+    }
+    // 반짝임
+    pStar.blinkPhase += pStar.blinkSpeed * 0.1;
+    const twinkle = pStar.baseSize + pStar.twinkleAmp * (0.5 + 0.5 * p.sin(pStar.blinkPhase));
+    const alpha = 100 + 155 * (0.5 + 0.5 * p.cos(pStar.blinkPhase * 1.3));
+    g.push();
+    g.translate(pStar.x, pStar.y);
+    g.textSize(SETTINGS.SmallStarSize * twinkle);
+    g.fill(p.red(col), p.green(col), p.blue(col), alpha);
+    g.text(SETTINGS.StarGlyph, 0, 0);
+    g.pop();
+  }
+  // --- DECEMBER 타이포그래피 (SVG 좌표 기반 + wave) ---
+  g.push();
+  g.textAlign(p.LEFT, p.CENTER);
+  g.noStroke();
+  g.textFont(st.font || 'IPAMincho Regular');
+  g.textSize(SETTINGS.FontSize);
+  const decemberLines = [
+    [{x:138.68,y:23.86,char:'D'},{x:144.38,y:32.53,char:'E'},{x:150.08,y:39.41,char:'C'},{x:155.78,y:44.00,char:'E'},{x:161.48,y:44.00,char:'M'},{x:167.18,y:39.41,char:'B'},{x:172.88,y:32.53,char:'E'},{x:178.58,y:23.86,char:'R'}],
+    [{x:123.79,y:55.00,char:'D'},{x:133.74,y:64.23,char:'E'},{x:143.70,y:71.55,char:'C'},{x:153.65,y:76.44,char:'E'},{x:163.61,y:76.44,char:'M'},{x:173.56,y:71.55,char:'B'},{x:183.52,y:64.23,char:'E'},{x:193.47,y:55.00,char:'R'}],
+    [{x:108.41,y:86.90,char:'D'},{x:122.76,y:96.38,char:'E'},{x:137.11,y:103.89,char:'C'},{x:151.46,y:108.91,char:'E'},{x:165.80,y:108.91,char:'M'},{x:180.15,y:103.89,char:'B'},{x:194.50,y:96.38,char:'E'},{x:208.85,y:86.90,char:'R'}],
+    [{x:92.80,y:119.07,char:'D'},{x:111.61,y:128.68,char:'E'},{x:130.42,y:136.30,char:'C'},{x:149.23,y:141.40,char:'E'},{x:168.03,y:141.40,char:'M'},{x:186.84,y:136.30,char:'B'},{x:205.65,y:128.68,char:'E'},{x:224.46,y:119.07,char:'R'}],
+    [{x:77.16,y:151.36,char:'D'},{x:100.44,y:161.06,char:'E'},{x:123.71,y:168.75,char:'C'},{x:146.99,y:173.89,char:'E'},{x:170.27,y:173.89,char:'M'},{x:193.55,y:168.75,char:'B'},{x:216.82,y:161.06,char:'E'},{x:240.10,y:151.36,char:'R'}],
+    [{x:61.65,y:183.71,char:'D'},{x:89.36,y:193.47,char:'E'},{x:117.07,y:201.21,char:'C'},{x:144.78,y:206.38,char:'E'},{x:172.48,y:206.38,char:'M'},{x:200.19,y:201.21,char:'B'},{x:227.90,y:193.47,char:'E'},{x:255.61,y:183.71,char:'R'}],
+    [{x:46.43,y:216.11,char:'D'},{x:78.49,y:225.91,char:'E'},{x:110.55,y:233.68,char:'C'},{x:142.60,y:238.87,char:'E'},{x:174.66,y:238.87,char:'M'},{x:206.71,y:233.68,char:'B'},{x:238.77,y:225.91,char:'E'},{x:270.83,y:216.11,char:'R'}],
+    [{x:31.64,y:248.53,char:'D'},{x:67.92,y:258.37,char:'E'},{x:104.20,y:266.16,char:'C'},{x:140.49,y:271.37,char:'E'},{x:176.77,y:271.37,char:'M'},{x:213.06,y:266.16,char:'B'},{x:249.34,y:258.37,char:'E'},{x:285.62,y:248.53,char:'R'}],
+    [{x:17.39,y:280.97,char:'D'},{x:57.74,y:290.83,char:'E'},{x:98.10,y:298.65,char:'C'},{x:138.45,y:303.87,char:'E'},{x:178.81,y:303.87,char:'M'},{x:219.16,y:298.65,char:'B'},{x:259.52,y:290.83,char:'E'},{x:299.87,y:280.97,char:'R'}],
+    [{x:3.80,y:313.43,char:'D'},{x:48.04,y:323.31,char:'E'},{x:92.27,y:331.14,char:'C'},{x:136.51,y:336.37,char:'E'},{x:180.75,y:336.37,char:'M'},{x:224.99,y:331.14,char:'B'},{x:269.22,y:323.31,char:'E'},{x:313.46,y:313.43,char:'R'}],
+    [{x:-9.02,y:345.89,char:'D'},{x:38.88,y:355.79,char:'E'},{x:86.78,y:363.63,char:'C'},{x:134.68,y:368.86,char:'E'},{x:182.58,y:368.86,char:'M'},{x:230.48,y:363.63,char:'B'},{x:278.38,y:355.79,char:'E'},{x:326.28,y:345.89,char:'R'}],
+    [{x:-20.97,y:378.36,char:'D'},{x:30.35,y:388.27,char:'E'},{x:81.66,y:396.12,char:'C'},{x:132.97,y:401.36,char:'E'},{x:184.29,y:401.36,char:'M'},{x:235.60,y:396.12,char:'B'},{x:286.91,y:388.27,char:'E'},{x:338.23,y:378.36,char:'R'}],
+    [{x:-31.96,y:410.84,char:'D'},{x:22.49,y:420.75,char:'E'},{x:76.95,y:428.61,char:'C'},{x:131.40,y:433.86,char:'E'},{x:185.86,y:433.86,char:'M'},{x:240.31,y:428.61,char:'B'},{x:294.77,y:420.75,char:'E'},{x:349.22,y:410.84,char:'R'}],
+    [{x:-41.92,y:443.32,char:'D'},{x:15.38,y:453.24,char:'E'},{x:72.68,y:461.11,char:'C'},{x:129.98,y:466.36,char:'E'},{x:187.28,y:466.36,char:'M'},{x:244.58,y:461.11,char:'B'},{x:301.88,y:453.24,char:'E'},{x:359.18,y:443.32,char:'R'}],
+    [{x:-50.76,y:475.80,char:'D'},{x:9.06,y:485.73,char:'E'},{x:68.89,y:493.60,char:'C'},{x:128.72,y:498.86,char:'E'},{x:188.54,y:498.86,char:'M'},{x:248.37,y:493.60,char:'B'},{x:308.20,y:485.73,char:'E'},{x:368.02,y:475.80,char:'R'}],
+    [{x:-58.43,y:508.29,char:'D'},{x:3.58,y:518.22,char:'E'},{x:65.60,y:526.10,char:'C'},{x:127.62,y:531.36,char:'E'},{x:189.64,y:531.36,char:'M'},{x:251.66,y:526.10,char:'B'},{x:313.68,y:518.22,char:'E'},{x:375.69,y:508.29,char:'R'}],
+    [{x:-64.87,y:540.78,char:'D'},{x:-1.02,y:550.72,char:'E'},{x:62.84,y:558.60,char:'C'},{x:126.70,y:563.86,char:'E'},{x:190.56,y:563.86,char:'M'},{x:254.42,y:558.60,char:'B'},{x:318.28,y:550.72,char:'E'},{x:382.13,y:540.78,char:'R'}],
+    [{x:-70.04,y:573.27,char:'D'},{x:-4.70,y:583.21,char:'E'},{x:60.63,y:591.09,char:'C'},{x:125.96,y:596.36,char:'E'},{x:191.30,y:596.36,char:'M'},{x:256.63,y:591.09,char:'B'},{x:321.96,y:583.21,char:'E'},{x:387.30,y:573.27,char:'R'}],
+    [{x:-73.88,y:605.77,char:'D'},{x:-7.45,y:615.71,char:'E'},{x:58.98,y:623.59,char:'C'},{x:125.41,y:628.86,char:'E'},{x:191.85,y:628.86,char:'M'},{x:258.28,y:623.59,char:'B'},{x:324.71,y:615.71,char:'E'},{x:391.14,y:605.77,char:'R'}],
+    [{x:-76.39,y:638.26,char:'D'},{x:-9.24,y:648.21,char:'E'},{x:57.91,y:656.09,char:'C'},{x:125.06,y:661.36,char:'E'},{x:192.20,y:661.36,char:'M'},{x:259.35,y:656.09,char:'B'},{x:326.50,y:648.21,char:'E'},{x:393.65,y:638.26,char:'R'}],
+    [{x:-77.54,y:670.76,char:'D'},{x:-10.06,y:680.71,char:'E'},{x:57.41,y:688.59,char:'C'},{x:124.89,y:693.86,char:'E'},{x:192.37,y:693.86,char:'M'},{x:259.85,y:688.59,char:'B'},{x:327.32,y:680.71,char:'E'},{x:394.80,y:670.76,char:'R'}],
+    [{x:-77.32,y:703.26,char:'D'},{x:-9.91,y:713.21,char:'E'},{x:57.51,y:721.09,char:'C'},{x:124.92,y:726.36,char:'E'},{x:192.34,y:726.36,char:'M'},{x:259.75,y:721.09,char:'B'},{x:327.17,y:713.21,char:'E'},{x:394.58,y:703.26,char:'R'}]
+  ];
+  const svgWidth = 321.26;
+  const svgHeight = 718.11;
+  const scaleX = g.width / svgWidth;
+  const scaleY = g.height / svgHeight;
+  const waveTime = p.frameCount * 0.05 + st.t * 0.5;
+  for (let lineIndex = 0; lineIndex < decemberLines.length; lineIndex++) {
+    const line = decemberLines[lineIndex];
+    for (let charIndex = 0; charIndex < line.length; charIndex++) {
+      const charData = line[charIndex];
+      const scaledX = charData.x * scaleX;
+      const scaledY = charData.y * scaleY;
+      const wavePhase = waveTime + scaledX * 0.02 + lineIndex * 0.5;
+      const waveOffset = p.sin(wavePhase) * 8;
+      const brightnessPhase = waveTime * 0.8 + scaledX * 0.01 + lineIndex * 0.3;
+      const brightness = 0.4 + 0.6 * (0.5 + 0.5 * p.sin(brightnessPhase));
+      const baseColor = p.color(SETTINGS.fg);
+      g.fill(p.red(baseColor) * brightness, p.green(baseColor) * brightness, p.blue(baseColor) * brightness);
+      g.text(charData.char, scaledX, scaledY + waveOffset);
+    }
+  }
+  g.pop();
+  st.t += 0.016;
+};
 const drawFns = {};
 // ...existing code...
 // ...existing code...
