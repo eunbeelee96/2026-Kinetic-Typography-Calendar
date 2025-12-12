@@ -225,7 +225,7 @@ drawFns['2'] = (p, g, st) => {
   st.t += 1/30;
 };
 // ---------- 공통 설정 ----------
-const IDS = Array.from({ length: 12 }, (_, i) => i.toString()); // "0"..."11"
+const IDS = Array.from({ length: 13 }, (_, i) => i.toString()); // "0"..."12"
 // ...existing code...
 // 8.5cm x 19cm를 px로 변환 (1인치=2.54cm, 1인치=96px)
 const PX_PER_CM = 96 / 2.54;
