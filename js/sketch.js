@@ -631,7 +631,7 @@ drawFns['5'] = (p, g, st) => {
   g.background(SETTINGS.bg);
   
   // --- May Typography ---
-  g.fill(SETTINGS.fg);
+  g.fill('#888888'); // kinetic text 회색
   g.noStroke();
   g.textFont(st.font || 'IPAMincho Regular');
   g.textSize(SETTINGS.FontSize);
@@ -685,7 +685,7 @@ drawFns['5'] = (p, g, st) => {
     g.noStroke();
     g.textFont(st.font || 'IPAMincho Regular');
     g.textSize(SETTINGS.TildeSize);
-    g.fill(SETTINGS.fg);
+    g.fill('#000000'); // 기호는 검은색
     
     const lastRowY = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance;
     
