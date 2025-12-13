@@ -1093,9 +1093,6 @@ drawFns['7'] = (p, g, st) => {
   st.t += SETTINGS.Speed;
 };
 
-// ...existing code...
-
-
 /* ============= February (target 1) ============= */
 drawFns['1'] = (p, g, st) => {
   // SVG에서 추출한 각 글자별 x, y, 문자 정보
