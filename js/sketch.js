@@ -939,7 +939,7 @@ drawFns['7'] = (p, g, st) => {
     fg: '#000000',
     bg: '#ffffff',
     FontSize: 18,
-    Speed: 0.004,
+    Speed: 0.065,
     // Quote rain settings
     EnableQuotes: true,
     QuoteGlyph: '"',
@@ -1018,7 +1018,7 @@ drawFns['7'] = (p, g, st) => {
     const maxX = p.max(...row.x);
     const rowCenter = (minX + maxX) / 2;
     const shift = canvasCenter - rowCenter;
-    const wave = p.sin(st.t * 30.0 + idx * 0.35) * 24;
+    const wave = p.sin(st.t * 2.5 + idx * 0.8) * 80;
     
     for (let i = 0; i < chars.length && i < row.x.length; i++) {
       g.text(chars[i], row.x[i] + shift + wave, row.y);
@@ -1101,7 +1101,7 @@ drawFns['8'] = (p, g, st) => {
     fg: '#000000',
     bg: '#ffffff',
     FontSize: 9.49,
-    Speed: 0.003,
+    Speed: 0.03,
     // Semicolon rain settings
     EnableSemicolons: true,
     SemicolonGlyph: ';',
@@ -1232,7 +1232,7 @@ drawFns['8'] = (p, g, st) => {
   g.textAlign(p.LEFT, p.CENTER);
   
   // wave 모션 파라미터
-  const amplitude = 6; // px
+  const amplitude = 25; // px (6 → 25로 증가)
   const phaseStep = 0.32; // 행별 위상차
   
   for (let rowIdx = 0; rowIdx < svgRows.length; rowIdx++) {
@@ -1240,7 +1240,7 @@ drawFns['8'] = (p, g, st) => {
     let x = row.startX;
     
     // 행 전체 wave 모션
-    const yWave = row.y + p.sin(st.t * 0.9 + rowIdx * phaseStep) * amplitude;
+    const yWave = row.y + p.sin(st.t * 3.5 + rowIdx * phaseStep) * amplitude;
     
     for (let i = 0; i < letters.length; i++) {
       g.text(letters[i], x, yWave);
