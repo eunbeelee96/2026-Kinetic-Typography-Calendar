@@ -181,6 +181,7 @@ drawFns['2'] = (p, g, st) => {
     }
   }
   // 콤마 rain
+  g.fill('#000000'); // 콤마는 검은색
   g.textSize(44);
   for (let pDot of st.dots) {
     const wind = 0.5 * (p.noise(pDot.y * 0.002, st.t * 0.1) - 0.5);
@@ -636,6 +637,7 @@ drawFns['1'] = (p, g, st) => {
   }
   st.t += 1/30;
   // 콤마 rain
+  g.fill('#000000'); // 콤마는 검은색
   g.textSize(44);
   for (let pDot of st.dots) {
     const wind = 0.5 * (p.noise(pDot.y * 0.002, st.t * 0.1) - 0.5);
@@ -1014,11 +1016,8 @@ drawFns['12'] = (p, g, st) => {
       const wavePhase = waveTime + scaledX * 0.02 + lineIndex * 0.5;
       const waveOffset = p.sin(wavePhase) * 8;
       
-      // 밝기 웨이브 효과
-      const brightnessPhase = waveTime * 0.8 + scaledX * 0.01 + lineIndex * 0.3;
-      const brightness = 0.4 + 0.6 * (0.5 + 0.5 * p.sin(brightnessPhase));
-      const baseColor = p.color(SETTINGS.fg);
-      g.fill(p.red(baseColor) * brightness, p.green(baseColor) * brightness, p.blue(baseColor) * brightness);
+      // 회색 고정
+      g.fill('#888888');
       
       g.text(charData.char, scaledX, scaledY + waveOffset);
     }
