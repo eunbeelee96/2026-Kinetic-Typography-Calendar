@@ -1400,6 +1400,153 @@ drawFns['9'] = (p, g, st) => {
   st.t += 0.03;
 };
 
+/* ============= October (target 10) ============= */
+drawFns['10'] = (p, g, st) => {
+  const SETTINGS = {
+    bg: 255,
+    fg: '#000000',
+    word: "October",
+    FontSize: 18,
+    TopMargin: 0,
+    BottomMargin: 0,
+    SideMargin: 70,
+    StartValue: 75,
+    EndValue: 8,
+    Duration: 2.5,
+    Delay: 0.08,
+    Distance: 55,
+    Speed: 0.015,
+    Gamma: 3,
+    Phase: 0.361,
+    RowPhase: 0.12,
+    DelayCurve: 1,
+    align: 'center',
+    // Slash rain parameters
+    slashRainDotCount: 14,
+    slashRainSpeed: 2.2,
+    slashRainFontSize: 32,
+    slashRainAlpha: 60
+  };
+
+  if (!st.inited) {
+    st.inited = true;
+    st.t = 43.545;
+    st.font = loadedFont;
+    
+    // Initialize slash rain (curly braces {})
+    st.slashRainDots = [];
+    for (let i = 0; i < SETTINGS.slashRainDotCount; i++) {
+      st.slashRainDots.push({
+        x: p.random(g.width),
+        y: p.random(-g.height, 0),
+        speed: p.random(1.2, SETTINGS.slashRainSpeed),
+        angle: p.random(p.TWO_PI),
+        angleSpeed: p.random(-0.04, 0.04),
+        phase: p.random(p.TWO_PI)
+      });
+    }
+  }
+
+  g.background(SETTINGS.bg);
+
+  // --- Draw October Typography ---
+  g.fill(SETTINGS.fg);
+  g.noStroke();
+  g.textFont(st.font || 'IPAMincho Regular');
+  g.textSize(SETTINGS.FontSize);
+  g.textAlign(p.LEFT, p.CENTER);
+
+  const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
+  const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
+  const phaseOff = SETTINGS.Phase * SETTINGS.Duration;
+
+  // Helper function for tracked text width
+  const trackedTextWidth = (str, tracking) => {
+    let w = 0;
+    for (let i = 0; i < str.length; i++) w += g.textWidth(str[i]);
+    return w + tracking * (str.length - 1);
+  };
+
+  // Drum curve progress function (October-specific)
+  const drumCurveProgress = (twd, dur) => {
+    const u = twd / dur;
+    const uf = u - p.floor(u);
+    return p.abs(p.sin(p.PI * (uf * 0.8)));
+  };
+
+  for (let idx = 0; idx < copies; idx++) {
+    const rowFrac = (copies > 1) ? idx / (copies - 1) : 0;
+    const curvedDelay = SETTINGS.Delay * p.pow(rowFrac, SETTINGS.DelayCurve);
+    const timeWithDelay = (st.t + phaseOff + idx * SETTINGS.RowPhase) - curvedDelay;
+
+    const progressRaw = drumCurveProgress(timeWithDelay, SETTINGS.Duration);
+    const progress = p.pow(progressRaw, SETTINGS.Gamma);
+
+    const tracking = SETTINGS.StartValue + progress * (SETTINGS.EndValue - SETTINGS.StartValue);
+    const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
+
+    // Alignment calculation
+    let x;
+    const totalW = trackedTextWidth(SETTINGS.word, tracking);
+    if (SETTINGS.align === 'left') {
+      x = SETTINGS.SideMargin;
+    } else if (SETTINGS.align === 'center') {
+      x = g.width / 2 - totalW / 2;
+    } else {
+      x = g.width - SETTINGS.SideMargin - totalW;
+    }
+
+    // Draw tracked text
+    let xpos = x;
+    for (let i = 0; i < SETTINGS.word.length; i++) {
+      const ch = SETTINGS.word[i];
+      g.text(ch, xpos, y);
+      xpos += g.textWidth(ch) + tracking;
+    }
+  }
+
+  // --- Draw Slash Rain (Curly Braces) ---
+  const lastRowY = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance;
+  
+  for (let d of st.slashRainDots) {
+    g.fill(0, 0, 0, SETTINGS.slashRainAlpha);
+    g.push();
+    g.translate(d.x, d.y);
+    
+    // Natural wobble rotation
+    const wobbleTime = st.t * 0.03 + d.x * 0.01;
+    const wobble = p.sin(wobbleTime) * 0.3;
+    g.rotate(d.angle + wobble);
+    
+    // Curly brace spacing motion
+    const spreadTime = st.t * 0.04 + d.phase;
+    const spread = p.map(p.sin(spreadTime), -1, 1, 0, SETTINGS.slashRainFontSize * 2.2);
+    
+    g.textAlign(p.CENTER, p.CENTER);
+    g.textSize(SETTINGS.slashRainFontSize);
+    g.text('{', -spread / 2, 0);
+    g.text('}', spread / 2, 0);
+    g.pop();
+    
+    // Update position
+    d.y += d.speed;
+    d.angle += d.angleSpeed + p.random(-0.01, 0.01);
+    
+    // Wrap around when reaching bottom
+    if (d.y > lastRowY) {
+      d.x = p.random(g.width);
+      d.y = p.random(-SETTINGS.slashRainFontSize * 2, 0);
+      d.speed = p.random(1.2, SETTINGS.slashRainSpeed);
+      d.angle = p.random(p.TWO_PI);
+      d.angleSpeed = p.random(-0.04, 0.04);
+      d.phase = p.random(p.TWO_PI);
+    }
+  }
+
+  // Increment time
+  st.t += SETTINGS.Speed;
+};
+
 /* ============= February (target 1) ============= */
 drawFns['1'] = (p, g, st) => {
   // SVG에서 추출한 각 글자별 x, y, 문자 정보
@@ -1898,6 +2045,8 @@ window.addEventListener('DOMContentLoaded', () => {
   visible['7'] = true;
   // 디버깅: 9월(9번) 캔버스 항상 보이게
   visible['9'] = true;
+  // 디버깅: 10월(10번) 캔버스 항상 보이게
+  visible['10'] = true;
 
   // MindAR target 이벤트 연결
   IDS.forEach(id => {
