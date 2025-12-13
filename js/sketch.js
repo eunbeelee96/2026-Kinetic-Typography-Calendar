@@ -1782,8 +1782,8 @@ window.addEventListener('DOMContentLoaded', () => {
     c.style.backgroundColor = 'transparent';
   });
   // (canvas-debug 디버그 캔버스 제거)
-  // 디버깅: 1월(0번) 캔버스 항상 보이게
-  //visible['0'] = true;
+  // 디버깅: 7월(7번) 캔버스 항상 보이게
+  visible['7'] = true;
 
   // MindAR target 이벤트 연결
   IDS.forEach(id => {
