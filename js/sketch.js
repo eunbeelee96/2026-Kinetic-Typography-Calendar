@@ -830,6 +830,18 @@ drawFns['6'] = (p, g, st) => {
     st.t = 18.975;
     st.font = loadedFont;
     st.colons = [];
+    st.startTime = p.millis();
+    
+    // Create colon sprite
+    const size = SETTINGS.ColonSize;
+    st.colonSprite = p.createGraphics(size, size);
+    st.colonSprite.clear();
+    st.colonSprite.noStroke();
+    st.colonSprite.fill(0);
+    const r = size * 0.18;
+    st.colonSprite.ellipse(size/2, size*0.32, r, r);
+    st.colonSprite.ellipse(size/2, size*0.68, r, r);
+    st.colonSpriteSize = size;
     
     // Initialize colon particles
     const yMin = SETTINGS.TopMargin;
@@ -840,8 +852,7 @@ drawFns['6'] = (p, g, st) => {
     for (let i = 0; i < SETTINGS.ColonCount; i++) {
       st.colons.push({
         fixedX: p.random(g.width),
-        fixedY: p.random(yMin, textBottom),
-        phase: i * 0.7
+        fixedY: p.random(yMin, textBottom)
       });
     }
   }
@@ -884,47 +895,38 @@ drawFns['6'] = (p, g, st) => {
   }
   
   // --- Colon Particles ---
-  if (SETTINGS.EnableColons) {
-    g.push();
-    g.textAlign(p.CENTER, p.CENTER);
-    g.noStroke();
-    g.textFont(st.font || 'IPAMincho Regular');
-    g.textSize(SETTINGS.ColonSize);
-    g.fill('#000000'); // 기호는 검은색
-    
+  if (SETTINGS.EnableColons && st.colonSprite) {
+    const now = (p.millis() - st.startTime) / 1000;
     const textBottom = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance + SETTINGS.FontSize * 0.5;
     
-    for (let pColon of st.colons) {
-      const t = st.t + pColon.phase;
+    for (let i = 0; i < st.colons.length; i++) {
+      let d = st.colons[i];
+      
+      // 각 콜론마다 고유한 위상
+      const phase = i * 0.7;
+      const t = now + phase;
       
       // 좌우 흔들림 (x축)
-      const xWobble = pColon.fixedX + p.sin(t * 1.5) * 25;
+      const xWobble = d.fixedX + p.sin(t * 1.5) * 25;
       
       // 상하 미세 흔들림 (y축)
-      const yWobble = pColon.fixedY + p.sin(t * 1.2 + pColon.phase) * 20;
+      const yWobble = d.fixedY + p.sin(t * 1.2 + phase) * 20;
       const yClamped = p.min(yWobble, textBottom);
       
       // 회전
-      const rotation = p.sin(t * 1.8 + pColon.phase) * p.radians(15);
+      const rotation = p.sin(t * 1.8 + phase) * p.radians(15);
       
       // Fade in/out (투명도 변화)
-      const fadeAlpha = (p.sin(t * 1.0 + pColon.phase) + 1) * 0.5;
+      const fadeAlpha = (p.sin(t * 1.0 + phase) + 1) * 0.5;
       
       g.push();
       g.translate(xWobble, yClamped);
       g.rotate(rotation);
-      
-      // Draw colon manually (two dots)
-      const col = p.color('#000000');
-      g.fill(p.red(col), p.green(col), p.blue(col), fadeAlpha * 255);
-      const r = SETTINGS.ColonSize * 0.18;
-      const centerY = 0;
-      g.ellipse(0, centerY - SETTINGS.ColonSize * 0.18, r, r);
-      g.ellipse(0, centerY + SETTINGS.ColonSize * 0.18, r, r);
-      
+      g.tint(255, fadeAlpha * 255);
+      g.image(st.colonSprite, -st.colonSpriteSize/2, -st.colonSpriteSize/2);
       g.pop();
     }
-    g.pop();
+    g.noTint();
   }
   
   st.t += SETTINGS.Speed;
