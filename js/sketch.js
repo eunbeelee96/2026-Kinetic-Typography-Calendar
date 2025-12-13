@@ -1261,6 +1261,145 @@ function drawAugustTrackedText(p, g, str, x, y, tracking, tt, baseFontSize, rowI
   }
 }
 
+/* ============= September (target 9) ============= */
+drawFns['9'] = (p, g, st) => {
+  if (!st.inited) {
+    st.inited = true;
+    st.t = 0;
+    st.font = loadedFont;
+    
+    // Initialize ampersand particles
+    st.ampParticles = [];
+    const AMPERSAND_COUNT = 10;
+    for (let i = 0; i < AMPERSAND_COUNT; i++) {
+      st.ampParticles.push({
+        x: p.random(g.width),
+        y: p.random(g.height),
+        vx: p.random(-0.7, 0.7),
+        vy: p.random(-0.7, 0.7),
+        bounceAmp: p.random(3, 8),
+        bounceSpeed: p.random(0.03, 0.08),
+        bouncePhase: p.random(p.TWO_PI),
+        size: 30,
+        rot: p.random(p.TWO_PI),
+        rotSpeed: p.random(-0.01, 0.01)
+      });
+    }
+    
+    // SVG pattern data - each row's x positions for "September"
+    st.svgRows = [
+      [65.25,88.23,111.21,134.19,157.17,180.15,203.13,226.11,249.09],
+      [64.88,87.83,110.78,133.72,156.67,179.61,202.56,225.51,248.45],
+      [64.35,87.26,110.17,133.08,155.99,178.90,201.81,224.73,247.64],
+      [63.58,86.46,109.33,132.21,155.09,177.96,200.84,223.71,246.59],
+      [62.51,85.35,108.19,131.03,153.87,176.71,199.55,222.39,245.23],
+      [61.02,83.82,106.63,129.43,152.24,175.04,197.85,220.65,243.46],
+      [58.98,81.75,104.51,127.28,150.05,172.82,195.59,218.36,241.13],
+      [56.19,78.93,101.66,124.40,147.13,169.86,192.60,215.33,238.07],
+      [52.43,75.12,97.82,120.52,143.22,165.92,188.62,211.31,234.01],
+      [47.34,70.00,92.66,115.33,137.99,160.65,183.31,205.98,228.64],
+      [40.49,63.12,85.75,108.37,131.00,153.63,176.25,198.88,221.50],
+      [31.31,53.90,76.49,99.08,121.67,144.26,166.85,189.44,212.03],
+      [19.00,41.55,64.10,86.66,109.21,131.76,154.32,176.87,199.43],
+      [2.53,25.05,47.57,70.08,92.60,115.12,137.64,160.15,182.67],
+      [68.49,90.97,113.45,135.93,158.41,180.89,203.37,225.85,248.33],
+      [68.56,91.01,113.45,135.89,158.34,180.78,203.23,225.67,248.11],
+      [68.61,91.02,113.43,135.83,158.24,180.65,203.06,225.46,247.87],
+      [68.63,91.00,113.37,135.74,158.11,180.48,202.85,225.22,247.59],
+      [68.61,90.94,113.27,135.61,157.94,180.27,202.61,224.94,247.27],
+      [68.53,90.83,113.12,135.42,157.71,180.01,202.30,224.60,246.90],
+      [68.38,90.64,112.89,135.15,157.41,179.67,201.93,224.19,246.44],
+      [68.13,90.35,112.57,134.79,157.01,179.23,201.45,223.67,245.89],
+      [67.75,89.93,112.11,134.30,156.48,178.66,200.85,223.03,245.21],
+      [67.20,89.34,111.49,133.63,155.78,177.92,200.07,222.22,244.36],
+      [66.42,88.53,110.64,132.75,154.85,176.96,199.07,221.18,243.28],
+      [65.35,87.42,109.49,131.56,153.63,175.70,197.77,219.84,241.91],
+      [63.90,85.93,107.96,129.99,152.02,174.05,196.08,218.12,240.15],
+      [61.93,83.93,105.92,127.91,149.90,171.90,193.89,215.88,237.88],
+      [59.30,81.26,103.21,125.17,147.12,169.07,191.03,212.98,234.94],
+      [55.80,77.72,99.63,121.55,143.47,165.38,187.30,209.21,231.13],
+      [51.17,73.04,94.92,116.80,138.67,160.55,182.43,204.31,226.18],
+      [45.05,66.89,88.73,110.57,132.41,154.24,176.08,197.92,219.76],
+      [37.02,58.82,80.62,102.42,124.22,146.02,167.81,189.61,211.41],
+      [71.48,93.24,115.00,136.76,158.52,180.28,202.04,223.80,245.56],
+      [71.60,93.32,115.04,136.76,158.48,180.20,201.92,223.65,245.37],
+      [71.71,93.40,115.08,136.76,158.44,180.12,201.80,223.48,245.16],
+      [71.81,93.46,115.10,136.74,158.38,180.02,201.66,223.31,244.95],
+      [71.90,93.50,115.10,136.70,158.31,179.91,201.51,223.11,244.71]
+    ];
+    
+    st.svgYs = [
+      0.00,18.50,37.00,55.50,74.00,92.50,111.00,129.50,148.00,166.50,185.00,203.50,222.00,240.50,259.00,277.50,296.00,314.50,333.00,351.50,370.00,388.50,407.00,425.50,444.00,462.50,481.00,499.50,518.00,536.50,555.00,573.50,592.00,610.50,629.00,647.50,666.00,684.50
+    ];
+  }
+  
+  g.background(255);
+  
+  // --- Update and draw floating ampersands ---
+  const topMargin = 0;
+  const bottomMargin = 0;
+  const lastRowY = g.height - bottomMargin;
+  
+  for (let pamp of st.ampParticles) {
+    // Update position
+    pamp.x += pamp.vx;
+    pamp.y += pamp.vy;
+    pamp.rot += pamp.rotSpeed;
+    pamp.bouncePhase += pamp.bounceSpeed;
+    
+    const bounceY = p.sin(pamp.bouncePhase) * pamp.bounceAmp;
+    
+    // Wrap around edges
+    if (pamp.x < 0) pamp.x += g.width;
+    if (pamp.x > g.width) pamp.x -= g.width;
+    if (pamp.y < 0) pamp.y += g.height;
+    if (pamp.y > g.height) pamp.y -= g.height;
+    
+    // Draw ampersand
+    const py = p.constrain(pamp.y + bounceY, topMargin, lastRowY);
+    g.push();
+    g.translate(pamp.x, py);
+    g.rotate(pamp.rot);
+    g.textSize(pamp.size);
+    g.textAlign(p.CENTER, p.CENTER);
+    g.fill(0, 180);
+    g.noStroke();
+    g.text('&', 0, 0);
+    g.pop();
+  }
+  
+  // --- Draw September SVG pattern with kinetic motion ---
+  const word = "September";
+  const fontSize = 16;
+  g.textFont(st.font || 'IPAMincho Regular');
+  g.textSize(fontSize);
+  g.noStroke();
+  g.fill(0); // Black text
+  
+  // Kinetic motion parameters
+  const ampY = 8;
+  const scaleAmp = 0.04;
+  
+  for (let row = 0; row < st.svgRows.length && row < st.svgYs.length; row++) {
+    // Row-based wave motion (alternating direction)
+    const rowPhase = row % 2 === 0 ? st.t : -st.t;
+    const rowY = st.svgYs[row] + p.sin(rowPhase + row * 0.5) * ampY;
+    const rowScale = 1 + scaleAmp * p.sin(rowPhase + row * 0.7);
+    
+    for (let i = 0; i < word.length && i < st.svgRows[row].length; i++) {
+      const baseX = st.svgRows[row][i];
+      g.push();
+      g.translate(baseX, rowY);
+      g.scale(rowScale);
+      g.text(word[i], 0, 0);
+      g.pop();
+    }
+  }
+  
+  // Increment time for animation
+  st.t += 0.03;
+};
+
 /* ============= February (target 1) ============= */
 drawFns['1'] = (p, g, st) => {
   // SVG에서 추출한 각 글자별 x, y, 문자 정보
@@ -1757,6 +1896,8 @@ window.addEventListener('DOMContentLoaded', () => {
   // (canvas-debug 디버그 캔버스 제거)
   // 디버깅: 7월(7번) 캔버스 항상 보이게
   visible['7'] = true;
+  // 디버깅: 9월(9번) 캔버스 항상 보이게
+  visible['9'] = true;
 
   // MindAR target 이벤트 연결
   IDS.forEach(id => {
