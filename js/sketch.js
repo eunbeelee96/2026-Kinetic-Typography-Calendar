@@ -932,6 +932,167 @@ drawFns['6'] = (p, g, st) => {
   st.t += SETTINGS.Speed;
 };
 
+drawFns['7'] = (p, g, st) => {
+  // --- Settings ---
+  const SETTINGS = {
+    word: 'July',
+    fg: '#000000',
+    bg: '#ffffff',
+    FontSize: 18,
+    Speed: 0.004,
+    // Quote rain settings
+    EnableQuotes: true,
+    QuoteGlyph: '"',
+    QuoteCount: 8,
+    QuoteSize: 48,
+    QuoteSpeedMin: 2.2,
+    QuoteSpeedMax: 5.0,
+    QuoteSpawnPad: 18,
+    QuoteWindAmp: 0.35,
+    QuoteWindFreq: 0.55,
+    QuoteDriftAmp: 0.6,
+    QuoteDriftFreq: 0.9,
+    QuoteGravity: 0.85,
+    QuoteTerminal: 12.0
+  };
+  
+  // SVG에서 추출한 정확한 July 좌표
+  const svgRows = [
+    {y:0,    x:[0.00,241.38,482.76,724.14]},
+    {y:56,   x:[0.00,183.63,367.26,550.89]},
+    {y:112,  x:[0.00,125.17,250.34,375.50]},
+    {y:168,  x:[0.00,78.52,157.03,235.55]},
+    {y:224,  x:[0.00,45.46,90.92,136.37]},
+    {y:280,  x:[0.00,25.53,51.05,76.58]},
+    {y:336,  x:[0.00,16.35,32.70,49.05]},
+    {y:392,  x:[0.00,14.06,28.11,42.17]},
+    {y:448,  x:[0.00,14.19,28.38,42.57]},
+    {y:504,  x:[0.00,17.53,35.05,52.58]},
+    {y:560,  x:[0.00,28.73,57.46,86.18]},
+    {y:616,  x:[0.00,51.55,103.09,154.64]},
+    {y:672,  x:[0.00,88.21,176.42,264.62]},
+    {y:728,  x:[0.00,139.06,278.13,417.19]}
+  ];
+  
+  if (!st.inited) {
+    st.inited = true;
+    st.t = 121.435;
+    st.font = loadedFont;
+    st.quotes = [];
+    
+    // Initialize quote particles
+    for (let i = 0; i < SETTINGS.QuoteCount; i++) {
+      const bounceType = p.random() < 0.6 ? 'bouncy' : 'falling';
+      st.quotes.push({
+        x: p.random(0, g.width),
+        y: p.random(-SETTINGS.QuoteSpawnPad * 4, g.height),
+        vx: p.random(-0.6, 0.6),
+        vy: p.random(SETTINGS.QuoteSpeedMin, SETTINGS.QuoteSpeedMax),
+        bounceType: bounceType,
+        bounceEnergy: bounceType === 'bouncy' ? p.random(0.3, 1.2) : 0,
+        bounceCount: 0,
+        theta: p.random(p.TWO_PI),
+        rnd: p.random(-1, 1),
+        baseAngle: p.random(-p.PI, p.PI)
+      });
+    }
+  }
+  
+  // Background
+  g.background(SETTINGS.bg);
+  
+  // --- July Typography ---
+  g.fill('#888888'); // kinetic text 회색
+  g.noStroke();
+  g.textFont(st.font || 'IPAMincho Regular');
+  g.textSize(SETTINGS.FontSize);
+  g.textAlign(p.LEFT, p.CENTER);
+  
+  const chars = SETTINGS.word.split('');
+  const canvasCenter = g.width / 2;
+  
+  // kinetic wave: 각 행이 좌우로 부드럽게 움직임
+  for (let idx = 0; idx < svgRows.length; idx++) {
+    const row = svgRows[idx];
+    const minX = p.min(...row.x);
+    const maxX = p.max(...row.x);
+    const rowCenter = (minX + maxX) / 2;
+    const shift = canvasCenter - rowCenter;
+    const wave = p.sin(st.t * 30.0 + idx * 0.35) * 24;
+    
+    for (let i = 0; i < chars.length && i < row.x.length; i++) {
+      g.text(chars[i], row.x[i] + shift + wave, row.y);
+    }
+  }
+  
+  // --- Quote Rain Particles ---
+  if (SETTINGS.EnableQuotes) {
+    g.push();
+    g.textAlign(p.CENTER, p.CENTER);
+    g.textFont(st.font || 'IPAMincho Regular');
+    g.textSize(SETTINGS.QuoteSize);
+    g.fill('#000000', 180); // 기호는 검은색, 투명도 180
+    
+    const capY = g.height;
+    const glyphHalf = SETTINGS.QuoteSize * 0.5;
+    
+    for (let pQuote of st.quotes) {
+      // 바람/흔들림
+      const wind = SETTINGS.QuoteWindAmp * (p.noise((pQuote.y + st.t * 110) * 0.002, (st.t + pQuote.theta) * SETTINGS.QuoteWindFreq) - 0.5);
+      const drift = SETTINGS.QuoteDriftAmp * p.sin(st.t * p.TWO_PI * SETTINGS.QuoteDriftFreq + pQuote.theta);
+      pQuote.vx += (wind * 0.08 + drift * 0.02);
+      pQuote.vy += SETTINGS.QuoteGravity * 0.18;
+      pQuote.vy = p.min(pQuote.vy, SETTINGS.QuoteTerminal);
+      pQuote.x += pQuote.vx;
+      pQuote.y += pQuote.vy;
+      
+      // 바닥에 튕기기
+      if (pQuote.y + glyphHalf > capY) {
+        pQuote.y = capY - glyphHalf;
+        
+        if (pQuote.bounceType === 'bouncy') {
+          pQuote.vy = -pQuote.vy * pQuote.bounceEnergy;
+          pQuote.bounceCount++;
+          pQuote.bounceEnergy *= p.random(0.88, 0.98);
+          
+          if (pQuote.bounceCount > p.random(6, 12) || p.abs(pQuote.vy) < p.random(0.5, 1.5)) {
+            pQuote.y = p.random(-SETTINGS.QuoteSpawnPad * 3, -10);
+            pQuote.x = p.random(0, g.width);
+            pQuote.vx = p.random(-0.6, 0.6);
+            pQuote.vy = p.random(SETTINGS.QuoteSpeedMin, SETTINGS.QuoteSpeedMax);
+            pQuote.bounceEnergy = p.random(0.3, 1.2);
+            pQuote.bounceCount = 0;
+          }
+        } else {
+          pQuote.y = p.random(-SETTINGS.QuoteSpawnPad * 3, -10);
+          pQuote.x = p.random(0, g.width);
+          pQuote.vx = p.random(-0.6, 0.6);
+          pQuote.vy = p.random(SETTINGS.QuoteSpeedMin, SETTINGS.QuoteSpeedMax);
+        }
+      }
+      
+      // 좌우 벽 래핑
+      if (pQuote.x < -10) pQuote.x = g.width + 10;
+      if (pQuote.x > g.width + 10) pQuote.x = -10;
+      
+      // 회전 효과
+      let angle = pQuote.baseAngle;
+      angle += p.atan2(pQuote.vy, pQuote.vx) * 0.7;
+      angle += pQuote.rnd * 0.7;
+      angle += p.sin(st.t * 2 + pQuote.theta) * 0.5;
+      
+      g.push();
+      g.translate(pQuote.x, pQuote.y);
+      g.rotate(angle);
+      g.text(SETTINGS.QuoteGlyph, 0, 0);
+      g.pop();
+    }
+    g.pop();
+  }
+  
+  st.t += SETTINGS.Speed;
+};
+
 // ...existing code...
 
 
