@@ -769,6 +769,167 @@ drawFns['5'] = (p, g, st) => {
   st.t += SETTINGS.Speed;
 };
 
+drawFns['6'] = (p, g, st) => {
+  // --- Settings ---
+  const SETTINGS = {
+    word: 'june',
+    fg: '#000000',
+    bg: '#ffffff',
+    FontSize: 16,
+    TopMargin: 16,
+    BottomMargin: 0,
+    SideMargin: 10,
+    StartValue: 0,
+    EndValue: 260,
+    Duration: 2.5,
+    Delay: 0.08,
+    Distance: 48,
+    Speed: 0.015,
+    Gamma: 0.3,
+    Phase: 0,
+    RowPhase: 0,
+    DelayCurve: 0.66,
+    // Colon particle settings
+    EnableColons: true,
+    ColonCount: 12,
+    ColonSize: 50
+  };
+  
+  // SVG 실제 좌표 패턴 (june의 4글자 각 행별 x좌표)
+  const svgRows = [
+    [-61.44, 72.00, 205.44, 338.87],   // y=40
+    [-51.56, 81.93, 215.41, 348.90],   // y=64
+    [-41.64, 91.87, 225.39, 358.90],   // y=88
+    [-31.70, 101.83, 235.36, 368.89],  // y=112
+    [-21.77, 111.79, 245.34, 378.89],  // y=136
+    [-31.75, 101.81, 235.38, 368.95],  // y=160
+    [-21.81, 111.77, 245.36, 378.94],  // y=184
+    [-11.86, 121.74, 255.34, 388.93],  // y=208
+    [-1.91, 131.70, 265.32, 398.93],   // y=232
+    [8.05, 141.67, 275.30, 408.92],    // y=256
+    [-1.93, 131.70, 265.34, 398.97],   // y=280
+    [8.02, 141.67, 275.32, 408.96],    // y=304
+    [17.99, 151.64, 285.30, 418.96],   // y=328
+    [27.95, 161.62, 295.28, 428.95],   // y=352
+    [37.92, 171.59, 305.27, 438.95],   // y=376
+    [27.93, 161.62, 295.30, 428.99],   // y=400
+    [37.90, 171.59, 305.29, 438.99],   // y=424
+    [47.87, 181.57, 315.28, 448.98],   // y=448
+    [57.84, 191.55, 325.27, 458.98],   // y=472
+    [67.81, 201.53, 335.26, 468.98],   // y=496
+    [57.83, 191.56, 325.29, 459.02],   // y=520
+    [67.80, 201.54, 335.28, 469.01],   // y=544
+    [77.78, 211.52, 345.27, 479.01],   // y=568
+    [87.75, 221.51, 355.26, 489.01],   // y=592
+    [97.73, 231.49, 365.25, 499.01],   // y=616
+    [87.75, 221.51, 355.28, 489.05]    // y=640
+  ];
+  
+  if (!st.inited) {
+    st.inited = true;
+    st.t = 18.975;
+    st.font = loadedFont;
+    st.colons = [];
+    
+    // Initialize colon particles
+    const yMin = SETTINGS.TopMargin;
+    const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
+    const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
+    const textBottom = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance + SETTINGS.FontSize * 0.5;
+    
+    for (let i = 0; i < SETTINGS.ColonCount; i++) {
+      st.colons.push({
+        fixedX: p.random(g.width),
+        fixedY: p.random(yMin, textBottom),
+        phase: i * 0.7
+      });
+    }
+  }
+  
+  // Background
+  g.background(SETTINGS.bg);
+  
+  // --- June Typography (SVG 곡선 패턴) ---
+  g.fill('#888888'); // kinetic text 회색
+  g.noStroke();
+  g.textFont(st.font || 'IPAMincho Regular');
+  g.textSize(SETTINGS.FontSize);
+  g.textAlign(p.LEFT, p.CENTER);
+  
+  const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
+  const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
+  const phaseOff = SETTINGS.Phase * SETTINGS.Duration;
+  
+  for (let idx = 0; idx < copies && idx < svgRows.length; idx++) {
+    const rowFrac = (copies > 1) ? idx / (copies - 1) : 0;
+    const curvedDelay = SETTINGS.Delay * p.pow(rowFrac, SETTINGS.DelayCurve);
+    const timeWithDelay = (st.t + phaseOff + idx * SETTINGS.RowPhase) - curvedDelay;
+    
+    // June pattern: smooth wave
+    const u = timeWithDelay / SETTINGS.Duration;
+    const progressRaw = (p.sin(u * p.PI * 2) + 1) * 0.5;
+    const progress = p.pow(progressRaw, SETTINGS.Gamma);
+    
+    const animationOffset = SETTINGS.StartValue + progress * (SETTINGS.EndValue - SETTINGS.StartValue);
+    const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
+    const baseCharPositions = svgRows[idx];
+    
+    // 각 글자를 SVG 패턴 + 애니메이션 오프셋으로 배치
+    const chars = SETTINGS.word.split('');
+    for (let i = 0; i < chars.length && i < baseCharPositions.length; i++) {
+      const scaleFactor = g.width / 500;
+      const x = (baseCharPositions[i] + animationOffset) * scaleFactor + SETTINGS.SideMargin;
+      g.text(chars[i], x, y);
+    }
+  }
+  
+  // --- Colon Particles ---
+  if (SETTINGS.EnableColons) {
+    g.push();
+    g.textAlign(p.CENTER, p.CENTER);
+    g.noStroke();
+    g.textFont(st.font || 'IPAMincho Regular');
+    g.textSize(SETTINGS.ColonSize);
+    g.fill('#000000'); // 기호는 검은색
+    
+    const textBottom = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance + SETTINGS.FontSize * 0.5;
+    
+    for (let pColon of st.colons) {
+      const t = st.t + pColon.phase;
+      
+      // 좌우 흔들림 (x축)
+      const xWobble = pColon.fixedX + p.sin(t * 1.5) * 25;
+      
+      // 상하 미세 흔들림 (y축)
+      const yWobble = pColon.fixedY + p.sin(t * 1.2 + pColon.phase) * 20;
+      const yClamped = p.min(yWobble, textBottom);
+      
+      // 회전
+      const rotation = p.sin(t * 1.8 + pColon.phase) * p.radians(15);
+      
+      // Fade in/out (투명도 변화)
+      const fadeAlpha = (p.sin(t * 1.0 + pColon.phase) + 1) * 0.5;
+      
+      g.push();
+      g.translate(xWobble, yClamped);
+      g.rotate(rotation);
+      
+      // Draw colon manually (two dots)
+      const col = p.color('#000000');
+      g.fill(p.red(col), p.green(col), p.blue(col), fadeAlpha * 255);
+      const r = SETTINGS.ColonSize * 0.18;
+      const centerY = 0;
+      g.ellipse(0, centerY - SETTINGS.ColonSize * 0.18, r, r);
+      g.ellipse(0, centerY + SETTINGS.ColonSize * 0.18, r, r);
+      
+      g.pop();
+    }
+    g.pop();
+  }
+  
+  st.t += SETTINGS.Speed;
+};
+
 // ...existing code...
 
 
