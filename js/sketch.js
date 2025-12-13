@@ -1011,14 +1011,14 @@ drawFns['7'] = (p, g, st) => {
   const chars = SETTINGS.word.split('');
   const canvasCenter = g.width / 2;
   
-  // kinetic wave: 각 행이 좌우로 부드럽게 움직임
+  // kinetic wave: 각 행이 좌우로 부드럽게 움직임 (극도로 빠른 속도)
   for (let idx = 0; idx < svgRows.length; idx++) {
     const row = svgRows[idx];
     const minX = p.min(...row.x);
     const maxX = p.max(...row.x);
     const rowCenter = (minX + maxX) / 2;
     const shift = canvasCenter - rowCenter;
-    const wave = p.sin(st.t * 2.5 + idx * 0.8) * 80;
+    const wave = p.sin(st.t * 30.0 + idx * 0.35) * 24; // 진폭 24px, 극도로 빠른 속도
     
     for (let i = 0; i < chars.length && i < row.x.length; i++) {
       g.text(chars[i], row.x[i] + shift + wave, row.y);
