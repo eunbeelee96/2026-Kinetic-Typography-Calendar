@@ -563,6 +563,7 @@ drawFns['5'] = (p, g, st) => {
     Phase: 1.0,
     RowPhase: 0.5,
     DelayCurve: 0,
+    align: 'right',
     // Tilde particle settings
     EnableTildes: true,
     TildeCount: 15,
@@ -640,6 +641,13 @@ drawFns['5'] = (p, g, st) => {
   const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
   const phaseOff = SETTINGS.Phase * SETTINGS.Duration;
   
+  // Helper function for tracked text width
+  const trackedTextWidth = (str, tracking) => {
+    let w = 0;
+    for (let i = 0; i < str.length; i++) w += g.textWidth(str[i]);
+    return w + tracking * (str.length - 1);
+  };
+  
   for (let idx = 0; idx < copies; idx++) {
     const rowFrac = (copies > 1) ? idx / (copies - 1) : 0;
     const curvedDelay = SETTINGS.Delay * p.pow(rowFrac, SETTINGS.DelayCurve);
@@ -651,7 +659,16 @@ drawFns['5'] = (p, g, st) => {
     
     const tracking = SETTINGS.StartValue + progress * (SETTINGS.EndValue - SETTINGS.StartValue);
     const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
-    const x = SETTINGS.SideMargin;
+    
+    // Right alignment
+    let x;
+    if (SETTINGS.align === 'left') {
+      x = SETTINGS.SideMargin;
+    } else if (SETTINGS.align === 'center') {
+      x = g.width / 2 - trackedTextWidth(SETTINGS.word, tracking) / 2;
+    } else {
+      x = g.width - SETTINGS.SideMargin - trackedTextWidth(SETTINGS.word, tracking);
+    }
     
     let xpos = x;
     for (let i = 0; i < SETTINGS.word.length; i++) {
@@ -675,15 +692,15 @@ drawFns['5'] = (p, g, st) => {
     for (let pTilde of st.tildes) {
       // Falling leaf motion physics
       
-      // 1. Pendulum swing (left-right oscillation)
+      // 1. Pendulum swing (left-right oscillation) - increased
       const pendulumPhase = st.t * 2.0 + pTilde.phaseX + pTilde.index * 0.8;
       const pendulumSwing = p.sin(pendulumPhase) * 35;
       
-      // 2. Zigzag motion (wind push)
+      // 2. Zigzag motion (wind push) - increased
       const zigzagPhase = st.t * 1.5 + pTilde.phaseY * 0.7;
       const zigzagOffset = p.sin(zigzagPhase + pTilde.index * 0.4) * 20;
       
-      // 3. Float motion (air resistance)
+      // 3. Float motion (air resistance) - increased
       const floatPhase = st.t * 1.2 + pTilde.nseed;
       const floatOffset = p.sin(floatPhase) * 12;
       
@@ -709,16 +726,16 @@ drawFns['5'] = (p, g, st) => {
       pTilde.x = pTilde.baseX + pendulumSwing + zigzagOffset + typographyInfluence;
       pTilde.y = pTilde.baseY + floatOffset;
       
-      // Rotation (wind tilt + spin)
+      // Rotation (wind tilt + spin) - increased
       const tiltPhase = st.t * 1.2 + pTilde.phaseX * 0.8;
       const windTilt = p.sin(tiltPhase + pTilde.index * 0.3) * 0.8;
       const spinPhase = st.t * 0.9 + pTilde.nseed;
       const leafSpin = p.sin(spinPhase) * 0.5;
       pTilde.ang = windTilt + leafSpin;
       
-      // Scale (depth effect)
+      // Scale (depth effect) - increased range from 0.7~1.1 to 1.1~1.5
       const depthPhase = st.t * 0.4 + pTilde.nseed * 0.5;
-      const depthScale = 0.9 + p.sin(depthPhase) * 0.2;
+      const depthScale = 1.1 + p.sin(depthPhase) * 0.4;
       pTilde.scale = SETTINGS.BaseScale * depthScale;
       
       // Wrap around
