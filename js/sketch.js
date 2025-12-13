@@ -48,6 +48,8 @@ drawFns['0'] = (p, g, st) => {
   g.textAlign(p.LEFT, p.CENTER);
   const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
   const copies = p.constrain(Math.floor(usableH / SETTINGS.Distance), 1, 1200);
+  const totalContentH = (copies - 1) * SETTINGS.Distance;
+  const verticalOffset = (g.height - totalContentH) / 2;
   const phaseOff = SETTINGS.Phase * SETTINGS.Duration;
   for (let idx = 0; idx < copies; idx++) {
     const rowFrac = (copies > 1) ? idx / (copies - 1) : 0;
@@ -56,7 +58,7 @@ drawFns['0'] = (p, g, st) => {
     const progressRaw = Math.abs(Math.sin(p.PI * (timeWithDelay / SETTINGS.Duration) * 0.6));
     const progress = Math.pow(progressRaw, SETTINGS.Gamma);
     const tracking = SETTINGS.StartValue + progress * (SETTINGS.EndValue - SETTINGS.StartValue);
-    const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
+    const y = verticalOffset + idx * SETTINGS.Distance;
     const totalW = trackedTextWidth(SETTINGS.word, tracking, g);
     const x = SETTINGS.SideMargin;
     drawTrackedText(SETTINGS.word, x, y, tracking, g);
@@ -66,7 +68,7 @@ drawFns['0'] = (p, g, st) => {
   g.noStroke();
   g.textSize(100);
   // 텍스트 영역 계산
-  const lastTextY = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance;
+  const lastTextY = verticalOffset + (copies - 1) * SETTINGS.Distance;
   const textAreaBottom = lastTextY + SETTINGS.FontSize;
   const capY = textAreaBottom - 50; // DOT_SIZE/2
   for (let pDot of st.dots) {
@@ -76,7 +78,7 @@ drawFns['0'] = (p, g, st) => {
     pDot.x += wind * 3 + sway;
     pDot.y += fall;
     if (pDot.y > capY) {
-      pDot.y = SETTINGS.TopMargin - 10;
+      pDot.y = verticalOffset - 10;
       pDot.x = p.random(g.width);
     }
     if (pDot.x < -10) pDot.x = g.width + 10;
@@ -161,6 +163,13 @@ drawFns['2'] = (p, g, st) => {
   g.textAlign(p.LEFT, p.CENTER);
   let now = p.millis() / 1000;
   let copies = st.svgY.length;
+  
+  // SVG Y 좌표 수직 중앙 정렬
+  const minY = Math.min(...st.svgY);
+  const maxY = Math.max(...st.svgY);
+  const svgContentHeight = maxY - minY + st.Amplitude; // amplitude 고려
+  const verticalOffset = (g.height - svgContentHeight) / 2 - minY;
+  
   for (let idx = 0; idx < copies; idx++) {
     let rowFrac = (copies > 1) ? idx / (copies - 1) : 0;
     let curvedDelay = st.Delay * Math.pow(rowFrac, st.DelayCurve);
@@ -168,7 +177,7 @@ drawFns['2'] = (p, g, st) => {
     let progressRaw = 1 - Math.abs(2 * fract(timeWithDelay / st.Duration) - 1);
     let progress = Math.pow(progressRaw, st.Gamma);
     let tracking = st.StartValue + progress * (st.EndValue - st.StartValue);
-    let y = st.svgY[idx] + st.Amplitude * (progress - 0.5);
+    let y = st.svgY[idx] + st.Amplitude * (progress - 0.5) + verticalOffset;
     // 중앙정렬
     let totalW = 0;
     for (let i = 0; i < st.word.length; i++) totalW += g.textWidth(st.word[i]);
@@ -639,6 +648,8 @@ drawFns['5'] = (p, g, st) => {
   
   const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
   const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
+  const totalContentH = (copies - 1) * SETTINGS.Distance;
+  const verticalOffset = (g.height - totalContentH) / 2;
   const phaseOff = SETTINGS.Phase * SETTINGS.Duration;
   
   // Helper function for tracked text width
@@ -658,7 +669,7 @@ drawFns['5'] = (p, g, st) => {
     const progress = p.pow(progressRaw, SETTINGS.Gamma);
     
     const tracking = SETTINGS.StartValue + progress * (SETTINGS.EndValue - SETTINGS.StartValue);
-    const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
+    const y = verticalOffset + idx * SETTINGS.Distance;
     
     // Right alignment
     let x;
@@ -687,7 +698,7 @@ drawFns['5'] = (p, g, st) => {
     g.textSize(SETTINGS.TildeSize);
     g.fill('#000000'); // 기호는 검은색
     
-    const lastRowY = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance;
+    const lastRowY = verticalOffset + (copies - 1) * SETTINGS.Distance;
     
     for (let pTilde of st.tildes) {
       // Falling leaf motion physics
@@ -740,7 +751,7 @@ drawFns['5'] = (p, g, st) => {
       
       // Wrap around
       if (pTilde.y > lastRowY) {
-        pTilde.baseY = p.random(-50, -20);
+        pTilde.baseY = p.random(verticalOffset - 100, verticalOffset - 20);
         pTilde.baseX = p.random(g.width * 0.1, g.width * 0.9);
         pTilde.phaseX = p.random(p.TWO_PI);
         pTilde.phaseY = p.random(p.TWO_PI);
@@ -847,7 +858,9 @@ drawFns['6'] = (p, g, st) => {
     const yMin = SETTINGS.TopMargin;
     const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
     const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
-    const textBottom = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance + SETTINGS.FontSize * 0.5;
+    const totalContentH = (copies - 1) * SETTINGS.Distance;
+    const verticalOffset = (g.height - totalContentH) / 2;
+    const textBottom = verticalOffset + (copies - 1) * SETTINGS.Distance + SETTINGS.FontSize * 0.5;
     
     for (let i = 0; i < SETTINGS.ColonCount; i++) {
       st.colons.push({
@@ -869,6 +882,8 @@ drawFns['6'] = (p, g, st) => {
   
   const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
   const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
+  const totalContentH = (copies - 1) * SETTINGS.Distance;
+  const verticalOffset = (g.height - totalContentH) / 2;
   const phaseOff = SETTINGS.Phase * SETTINGS.Duration;
   
   for (let idx = 0; idx < copies && idx < svgRows.length; idx++) {
@@ -876,13 +891,15 @@ drawFns['6'] = (p, g, st) => {
     const curvedDelay = SETTINGS.Delay * p.pow(rowFrac, SETTINGS.DelayCurve);
     const timeWithDelay = (st.t + phaseOff + idx * SETTINGS.RowPhase) - curvedDelay;
     
+    const rowY = verticalOffset + idx * SETTINGS.Distance;
+    
     // June pattern: smooth wave
     const u = timeWithDelay / SETTINGS.Duration;
     const progressRaw = (p.sin(u * p.PI * 2) + 1) * 0.5;
     const progress = p.pow(progressRaw, SETTINGS.Gamma);
     
     const animationOffset = SETTINGS.StartValue + progress * (SETTINGS.EndValue - SETTINGS.StartValue);
-    const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
+    const y = rowY;
     const baseCharPositions = svgRows[idx];
     
     // 각 글자를 SVG 패턴 + 애니메이션 오프셋으로 배치
@@ -897,7 +914,7 @@ drawFns['6'] = (p, g, st) => {
   // --- Colon Particles ---
   if (SETTINGS.EnableColons && st.colonSprite) {
     const now = (p.millis() - st.startTime) / 1000;
-    const textBottom = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance + SETTINGS.FontSize * 0.5;
+    const textBottom = verticalOffset + (copies - 1) * SETTINGS.Distance + SETTINGS.FontSize * 0.5;
     
     for (let i = 0; i < st.colons.length; i++) {
       let d = st.colons[i];
@@ -1170,6 +1187,8 @@ drawFns['8'] = (p, g, st) => {
   
   const availH = p.max(0, g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin);
   const copies = p.min(p.floor(availH / SETTINGS.Distance), 150);
+  const totalContentH = (copies - 1) * SETTINGS.Distance;
+  const verticalOffset = (g.height - totalContentH) / 2;
   
   for (let idx = 0; idx < copies; idx++) {
     const rowRatio = idx / p.max(1, copies - 1);
@@ -1195,7 +1214,7 @@ drawFns['8'] = (p, g, st) => {
     // 수직 압축 효과
     const compression = convergence * 0.15;
     const verticalShift = (rowRatio - 0.5) * compression * g.height * 0.08;
-    const y = SETTINGS.TopMargin + (idx + 0.5) * SETTINGS.Distance + verticalShift;
+    const y = verticalOffset + (idx + 0.5) * SETTINGS.Distance + verticalShift;
     
     // 텍스트 그리기 (tracked text)
     const x = SETTINGS.SideMargin;
@@ -1380,10 +1399,13 @@ drawFns['9'] = (p, g, st) => {
   const ampY = 8;
   const scaleAmp = 0.04;
   
+  const totalSvgH = st.svgYs.length > 0 ? (st.svgYs[st.svgYs.length - 1] - st.svgYs[0]) : 0;
+  const verticalOffset = (g.height - totalSvgH) / 2;
+  
   for (let row = 0; row < st.svgRows.length && row < st.svgYs.length; row++) {
     // Row-based wave motion (alternating direction)
     const rowPhase = row % 2 === 0 ? st.t : -st.t;
-    const rowY = st.svgYs[row] + p.sin(rowPhase + row * 0.5) * ampY;
+    const rowY = (st.svgYs[row] - st.svgYs[0]) + verticalOffset + p.sin(rowPhase + row * 0.5) * ampY;
     const rowScale = 1 + scaleAmp * p.sin(rowPhase + row * 0.7);
     
     for (let i = 0; i < word.length && i < st.svgRows[row].length; i++) {
@@ -1458,6 +1480,8 @@ drawFns['10'] = (p, g, st) => {
 
   const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
   const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
+  const totalContentH = (copies - 1) * SETTINGS.Distance;
+  const verticalOffset = (g.height - totalContentH) / 2;
   const phaseOff = SETTINGS.Phase * SETTINGS.Duration;
 
   // Helper function for tracked text width
@@ -1483,7 +1507,7 @@ drawFns['10'] = (p, g, st) => {
     const progress = p.pow(progressRaw, SETTINGS.Gamma);
 
     const tracking = SETTINGS.StartValue + progress * (SETTINGS.EndValue - SETTINGS.StartValue);
-    const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
+    const y = verticalOffset + idx * SETTINGS.Distance;
 
     // Alignment calculation
     let x;
@@ -1506,7 +1530,7 @@ drawFns['10'] = (p, g, st) => {
   }
 
   // --- Draw Slash Rain (Curly Braces) ---
-  const lastRowY = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance;
+  const lastRowY = verticalOffset + (copies - 1) * SETTINGS.Distance;
   
   for (let d of st.slashRainDots) {
     g.fill('#000000'); // Black braces
@@ -1627,6 +1651,14 @@ drawFns['1'] = (p, g, st) => {
   const speed = 0.0025;
   const gamma = 0.45;
   const amplitude = 22;
+  
+  // SVG 데이터에서 최대/최소 y 계산
+  const allYs = st.svgTextData.map(d => d[1]);
+  const minY = Math.min(...allYs);
+  const maxY = Math.max(...allYs);
+  const svgContentHeight = maxY - minY;
+  const verticalOffset = (g.height - svgContentHeight) / 2 - minY;
+  
   let t0 = st.t + phase;
   for (let i = 0; i < st.svgTextData.length; i++) {
     const [x, y, ch] = st.svgTextData[i];
@@ -1634,7 +1666,7 @@ drawFns['1'] = (p, g, st) => {
     let tChar = t0 - (i % 8) * delayCurve * delay - row * rowPhase;
     let ease = Math.pow(Math.abs(Math.sin(tChar)), gamma);
     let yOffset = -ease * amplitude;
-    g.text(ch, x, y + yOffset);
+    g.text(ch, x, y + yOffset + verticalOffset);
   }
   st.t += 1/30;
   // 콤마 rain
