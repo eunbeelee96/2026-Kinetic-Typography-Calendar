@@ -1509,7 +1509,7 @@ drawFns['10'] = (p, g, st) => {
   const lastRowY = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance;
   
   for (let d of st.slashRainDots) {
-    g.fill(0, 0, 0, SETTINGS.slashRainAlpha);
+    g.fill('#000000'); // Black braces
     g.push();
     g.translate(d.x, d.y);
     
