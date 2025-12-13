@@ -543,6 +543,215 @@ drawFns['4'] = (p, g, st) => {
   st.t += SETTINGS.Speed;
 };
 
+drawFns['5'] = (p, g, st) => {
+  // --- Settings ---
+  const SETTINGS = {
+    word: 'May',
+    fg: '#000000',
+    bg: '#ffffff',
+    FontSize: 24,
+    TopMargin: 20,
+    BottomMargin: 0,
+    SideMargin: 20,
+    StartValue: -2,
+    EndValue: 144,
+    Duration: 2.04,
+    Delay: 0.08,
+    Distance: 34,
+    Speed: 0.015,
+    Gamma: 0.3,
+    Phase: 1.0,
+    RowPhase: 0.5,
+    DelayCurve: 0,
+    // Tilde particle settings
+    EnableTildes: true,
+    TildeCount: 15,
+    TildeSize: 45,
+    TildeGlyph: '~',
+    BaseScale: 1.0
+  };
+  
+  if (!st.inited) {
+    st.inited = true;
+    st.t = 229.935;
+    st.font = loadedFont;
+    st.tildes = [];
+    
+    // Initialize tilde particles with wave motion
+    const minDistance = 60;
+    const positions = [];
+    const attempts = SETTINGS.TildeCount * 20;
+    
+    // Generate well-distributed positions
+    for (let attempt = 0; attempt < attempts && positions.length < SETTINGS.TildeCount; attempt++) {
+      const x = p.random(g.width * 0.1, g.width * 0.9);
+      const y = p.random(-100, g.height * 1.2);
+      
+      let validPosition = true;
+      for (const pos of positions) {
+        const distance = p.dist(x, y, pos.x, pos.y);
+        if (distance < minDistance) {
+          validPosition = false;
+          break;
+        }
+      }
+      
+      if (validPosition) {
+        positions.push({ x, y });
+      }
+    }
+    
+    // Create tildes from positions
+    for (let i = 0; i < positions.length; i++) {
+      const pos = positions[i];
+      const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
+      const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
+      const nearestRow = p.floor((pos.y - SETTINGS.TopMargin) / SETTINGS.Distance);
+      
+      st.tildes.push({
+        baseX: pos.x,
+        baseY: pos.y,
+        x: pos.x,
+        y: pos.y,
+        ang: p.random(p.TWO_PI),
+        nseed: p.random(1000),
+        phaseX: p.random(p.TWO_PI),
+        phaseY: p.random(p.TWO_PI),
+        life: 0,
+        scale: SETTINGS.BaseScale,
+        index: i,
+        rowInfluence: p.random(0.1, 0.4),
+        nearestRow: nearestRow
+      });
+    }
+  }
+  
+  // Background
+  g.background(SETTINGS.bg);
+  
+  // --- May Typography ---
+  g.fill(SETTINGS.fg);
+  g.noStroke();
+  g.textFont(st.font || 'IPAMincho Regular');
+  g.textSize(SETTINGS.FontSize);
+  g.textAlign(p.LEFT, p.CENTER);
+  
+  const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
+  const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
+  const phaseOff = SETTINGS.Phase * SETTINGS.Duration;
+  
+  for (let idx = 0; idx < copies; idx++) {
+    const rowFrac = (copies > 1) ? idx / (copies - 1) : 0;
+    const curvedDelay = SETTINGS.Delay * p.pow(rowFrac, SETTINGS.DelayCurve);
+    const timeWithDelay = (st.t + phaseOff + idx * SETTINGS.RowPhase) - curvedDelay;
+    
+    const u = timeWithDelay / SETTINGS.Duration;
+    const progressRaw = p.abs(p.sin(p.PI * u * 0.6));
+    const progress = p.pow(progressRaw, SETTINGS.Gamma);
+    
+    const tracking = SETTINGS.StartValue + progress * (SETTINGS.EndValue - SETTINGS.StartValue);
+    const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
+    const x = SETTINGS.SideMargin;
+    
+    let xpos = x;
+    for (let i = 0; i < SETTINGS.word.length; i++) {
+      const ch = SETTINGS.word[i];
+      g.text(ch, xpos, y);
+      xpos += g.textWidth(ch) + tracking;
+    }
+  }
+  
+  // --- Tilde Particles (falling leaf motion) ---
+  if (SETTINGS.EnableTildes) {
+    g.push();
+    g.textAlign(p.CENTER, p.CENTER);
+    g.noStroke();
+    g.textFont(st.font || 'IPAMincho Regular');
+    g.textSize(SETTINGS.TildeSize);
+    g.fill(SETTINGS.fg);
+    
+    const lastRowY = SETTINGS.TopMargin + (copies - 1) * SETTINGS.Distance;
+    
+    for (let pTilde of st.tildes) {
+      // Falling leaf motion physics
+      
+      // 1. Pendulum swing (left-right oscillation)
+      const pendulumPhase = st.t * 2.0 + pTilde.phaseX + pTilde.index * 0.8;
+      const pendulumSwing = p.sin(pendulumPhase) * 35;
+      
+      // 2. Zigzag motion (wind push)
+      const zigzagPhase = st.t * 1.5 + pTilde.phaseY * 0.7;
+      const zigzagOffset = p.sin(zigzagPhase + pTilde.index * 0.4) * 20;
+      
+      // 3. Float motion (air resistance)
+      const floatPhase = st.t * 1.2 + pTilde.nseed;
+      const floatOffset = p.sin(floatPhase) * 12;
+      
+      // 4. Gentle falling
+      const fallSpeed = 0.3;
+      pTilde.baseY += fallSpeed;
+      
+      // 5. Typography influence (subtle)
+      let typographyInfluence = 0;
+      if (pTilde.nearestRow >= 0 && pTilde.nearestRow < copies) {
+        const rowFrac = (copies > 1) ? pTilde.nearestRow / (copies - 1) : 0;
+        const curvedDelay = SETTINGS.Delay * p.pow(rowFrac, SETTINGS.DelayCurve);
+        const timeWithDelay = (st.t + SETTINGS.Phase * SETTINGS.Duration + pTilde.nearestRow * SETTINGS.RowPhase) - curvedDelay;
+        
+        const u = timeWithDelay / SETTINGS.Duration;
+        const progressRaw = p.abs(p.sin(p.PI * u * 0.6));
+        const progress = p.pow(progressRaw, SETTINGS.Gamma);
+        
+        typographyInfluence = p.sin(progress * p.TWO_PI + st.t * 0.8) * pTilde.rowInfluence * 5;
+      }
+      
+      // Final position
+      pTilde.x = pTilde.baseX + pendulumSwing + zigzagOffset + typographyInfluence;
+      pTilde.y = pTilde.baseY + floatOffset;
+      
+      // Rotation (wind tilt + spin)
+      const tiltPhase = st.t * 1.2 + pTilde.phaseX * 0.8;
+      const windTilt = p.sin(tiltPhase + pTilde.index * 0.3) * 0.8;
+      const spinPhase = st.t * 0.9 + pTilde.nseed;
+      const leafSpin = p.sin(spinPhase) * 0.5;
+      pTilde.ang = windTilt + leafSpin;
+      
+      // Scale (depth effect)
+      const depthPhase = st.t * 0.4 + pTilde.nseed * 0.5;
+      const depthScale = 0.9 + p.sin(depthPhase) * 0.2;
+      pTilde.scale = SETTINGS.BaseScale * depthScale;
+      
+      // Wrap around
+      if (pTilde.y > lastRowY) {
+        pTilde.baseY = p.random(-50, -20);
+        pTilde.baseX = p.random(g.width * 0.1, g.width * 0.9);
+        pTilde.phaseX = p.random(p.TWO_PI);
+        pTilde.phaseY = p.random(p.TWO_PI);
+        pTilde.nseed = p.random(1000);
+      }
+      
+      if (pTilde.x < -30) {
+        pTilde.baseX += g.width + 60;
+      } else if (pTilde.x > g.width + 30) {
+        pTilde.baseX -= g.width + 60;
+      }
+      
+      pTilde.life += SETTINGS.Speed;
+      
+      // Draw tilde
+      g.push();
+      g.translate(p.round(pTilde.x), p.round(pTilde.y));
+      g.rotate(pTilde.ang);
+      g.scale(pTilde.scale);
+      g.text(SETTINGS.TildeGlyph, 0, 0);
+      g.pop();
+    }
+    g.pop();
+  }
+  
+  st.t += SETTINGS.Speed;
+};
+
 // ...existing code...
 
 
