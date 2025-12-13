@@ -95,11 +95,10 @@
  <a-scene
   mindar-image="
     imageTargetSrc: data/targets.mind;
-    filterMinCF: 0.0005;
-    filterBeta: 0.1;
-    warmupTolerance: 5;
-    missTolerance: 5;
-    smoothingFactor: 0.75;
+    filterMinCF: 0.001;
+    filterBeta: 1000;
+    warmupTolerance: 2;
+    missTolerance: 2;
   "
   vr-mode-ui="enabled: false"
   device-orientation-permission-ui="enabled: false"

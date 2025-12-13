@@ -1275,14 +1275,14 @@ drawFns['9'] = (p, g, st) => {
       st.ampParticles.push({
         x: p.random(g.width),
         y: p.random(g.height),
-        vx: p.random(-0.7, 0.7),
-        vy: p.random(-0.7, 0.7),
+        vx: p.random(-2.0, 2.0),
+        vy: p.random(-2.0, 2.0),
         bounceAmp: p.random(3, 8),
-        bounceSpeed: p.random(0.03, 0.08),
+        bounceSpeed: p.random(0.08, 0.15),
         bouncePhase: p.random(p.TWO_PI),
         size: 30,
         rot: p.random(p.TWO_PI),
-        rotSpeed: p.random(-0.01, 0.01)
+        rotSpeed: p.random(-0.03, 0.03)
       });
     }
     
@@ -1374,7 +1374,7 @@ drawFns['9'] = (p, g, st) => {
   g.textFont(st.font || 'IPAMincho Regular');
   g.textSize(fontSize);
   g.noStroke();
-  g.fill(0); // Black text
+  g.fill('#888888'); // Gray text
   
   // Kinetic motion parameters
   const ampY = 8;
@@ -1397,7 +1397,7 @@ drawFns['9'] = (p, g, st) => {
   }
   
   // Increment time for animation
-  st.t += 0.03;
+  st.t += 0.12;
 };
 
 /* ============= October (target 10) ============= */
@@ -1450,7 +1450,7 @@ drawFns['10'] = (p, g, st) => {
   g.background(SETTINGS.bg);
 
   // --- Draw October Typography ---
-  g.fill(SETTINGS.fg);
+  g.fill('#888888'); // Gray text
   g.noStroke();
   g.textFont(st.font || 'IPAMincho Regular');
   g.textSize(SETTINGS.FontSize);
