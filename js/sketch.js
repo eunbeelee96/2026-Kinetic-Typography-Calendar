@@ -2043,6 +2043,8 @@ window.addEventListener('DOMContentLoaded', () => {
   // (canvas-debug 디버그 캔버스 제거)
   // 디버깅: 7월(7번) 캔버스 항상 보이게
   visible['7'] = true;
+  // 디버깅: 8월(8번) 캔버스 항상 보이게
+  visible['8'] = true;
   // 디버깅: 9월(9번) 캔버스 항상 보이게
   visible['9'] = true;
   // 디버깅: 10월(10번) 캔버스 항상 보이게
