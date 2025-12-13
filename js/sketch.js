@@ -383,6 +383,165 @@ drawFns['3'] = (p, g, st) => {
   st.t += S.Speed;
   st.dotPhase += S.Speed;
 };
+
+// ========== APRIL (target 4) ========== //
+drawFns['4'] = (p, g, st) => {
+  // --- Settings ---
+  const SETTINGS = {
+    word: 'april',
+    fg: '#000000',
+    bg: '#ffffff',
+    FontSize: 18,
+    TopMargin: 20,
+    SideMargin: 20,
+    StartValue: 300,
+    EndValue: 26,
+    Duration: 1.52,
+    Delay: 0.3,
+    Distance: 55,
+    Speed: 0.065,
+    Gamma: 0.7,
+    Phase: 0.059,
+    RowPhase: 0.069,
+    DelayCurve: 0,
+    ParenGlyphL: '(',
+    ParenGlyphR: ')',
+    ParenCount: 18,
+    ParenSize: 24
+  };
+  
+  if (!st.inited) {
+    st.inited = true;
+    st.t = 382.595;
+    st.font = loadedFont;
+    
+    // 괄호 파티클 초기화
+    st.parens = [];
+    const topMargin = SETTINGS.TopMargin;
+    const usableH = g.height - topMargin;
+    const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
+    const actualTextHeight = (copies - 1) * SETTINGS.Distance;
+    const textBottom = topMargin + actualTextHeight;
+    const finalBottom = p.min(textBottom, g.height);
+    
+    for (let i = 0; i < SETTINGS.ParenCount; i++) {
+      const isRight = p.random() < 0.7;
+      st.parens.push({
+        x: p.random(SETTINGS.SideMargin, g.width - SETTINGS.SideMargin),
+        y: p.random(topMargin, finalBottom),
+        vx: p.random(-1.5, 1.5),
+        vy: p.random(-1.0, 1.0),
+        theta: p.random(p.TWO_PI),
+        isRight,
+        windPhase: p.random(p.TWO_PI)
+      });
+    }
+  }
+  
+  // 배경
+  g.background(SETTINGS.bg);
+  
+  // --- april 타이포그래피 ---
+  g.fill(SETTINGS.fg);
+  g.noStroke();
+  g.textFont(st.font || 'IPAMincho Regular');
+  g.textSize(SETTINGS.FontSize);
+  g.textAlign(p.LEFT, p.CENTER);
+  
+  const usableH = g.height - SETTINGS.TopMargin;
+  const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
+  const usableWidth = g.width - (SETTINGS.SideMargin * 2);
+  const charCount = SETTINGS.word.length;
+  const estimatedCharWidth = SETTINGS.FontSize * 0.6;
+  const totalCharWidth = estimatedCharWidth * charCount;
+  const availableSpaceForTracking = usableWidth - totalCharWidth;
+  const optimalTracking = p.max(5, availableSpaceForTracking / (charCount - 1));
+  
+  for (let idx = 0; idx < copies; idx++) {
+    const smoothProgress = (p.sin(st.t * 0.5) + 1) * 0.5;
+    const trackingRange = optimalTracking * 0.4;
+    const tracking = optimalTracking + trackingRange * (smoothProgress - 0.5) * 2;
+    const y = SETTINGS.TopMargin + idx * SETTINGS.Distance;
+    
+    let xpos = SETTINGS.SideMargin;
+    for (let i = 0; i < SETTINGS.word.length; i++) {
+      const ch = SETTINGS.word[i];
+      g.text(ch, xpos, y);
+      xpos += g.textWidth(ch) + tracking;
+    }
+  }
+  
+  // --- 괄호 파티클 (April buds) ---
+  g.push();
+  g.textAlign(p.CENTER, p.CENTER);
+  g.noStroke();
+  g.textFont(st.font || 'IPAMincho Regular');
+  g.textSize(SETTINGS.ParenSize);
+  
+  const topMargin = SETTINGS.TopMargin;
+  const usableHParen = g.height - topMargin;
+  const copiesParen = p.constrain(p.floor(usableHParen / SETTINGS.Distance), 1, 1200);
+  const actualTextHeight = (copiesParen - 1) * SETTINGS.Distance;
+  const textBottom = topMargin + actualTextHeight;
+  const finalBottom = p.min(textBottom, g.height);
+  
+  const col = p.color(SETTINGS.fg);
+  
+  for (let pParen of st.parens) {
+    // 강한 바람 효과
+    const windStrength = 0.35 * 8.0;
+    const windFreq = 0.55 * 2.0;
+    const driftAmp = 0.6 * 6.0;
+    
+    const windX = windStrength * p.sin(st.t * windFreq + pParen.windPhase + pParen.x * 0.001);
+    const windY = windStrength * p.sin(st.t * windFreq * 0.6 + pParen.windPhase + pParen.y * 0.001) * 0.7;
+    
+    const driftX = driftAmp * p.sin(st.t * 0.6 + pParen.theta) * 1.2;
+    const driftY = driftAmp * p.sin(st.t * 0.5 + pParen.theta * 1.3) * 1.0;
+    
+    const noiseScale = 0.005;
+    const noiseX = (p.noise(pParen.x * noiseScale, pParen.y * noiseScale, st.t * 0.8) - 0.5) * 2.0;
+    const noiseY = (p.noise(pParen.x * noiseScale + 100, pParen.y * noiseScale + 100, st.t * 0.7) - 0.5) * 1.5;
+    
+    pParen.vx += windX * 0.15 + driftX * 0.12 + noiseX * 0.8;
+    pParen.vy += windY * 0.15 + driftY * 0.12 + noiseY * 0.8;
+    
+    pParen.vx *= 0.75;
+    pParen.vy *= 0.75;
+    
+    const maxSpeed = 8.0;
+    const speed = p.sqrt(pParen.vx * pParen.vx + pParen.vy * pParen.vy);
+    if (speed > maxSpeed) {
+      pParen.vx = (pParen.vx / speed) * maxSpeed;
+      pParen.vy = (pParen.vy / speed) * maxSpeed;
+    }
+    
+    pParen.x += pParen.vx;
+    pParen.y += pParen.vy;
+    
+    const margin = 30;
+    if (pParen.x > g.width - SETTINGS.SideMargin + margin) pParen.x = SETTINGS.SideMargin - margin;
+    if (pParen.x < SETTINGS.SideMargin - margin) pParen.x = g.width - SETTINGS.SideMargin + margin;
+    if (pParen.y > finalBottom + margin) pParen.y = topMargin - margin;
+    if (pParen.y < topMargin - margin) pParen.y = finalBottom + margin;
+    
+    const windAngle = pParen.vx * 0.8;
+    const randomTilt = (pParen.theta / p.TWO_PI - 0.5) * 0.6;
+    const gentleWobble = p.sin(st.t * 0.6 + pParen.windPhase) * 0.3;
+    const ang = windAngle + randomTilt + gentleWobble;
+    
+    g.push();
+    g.translate(pParen.x, pParen.y);
+    g.rotate(ang);
+    g.fill(p.red(col), p.green(col), p.blue(col), 255);
+    g.text(pParen.isRight ? SETTINGS.ParenGlyphR : SETTINGS.ParenGlyphL, 0, 0);
+    g.pop();
+  }
+  g.pop();
+  
+  st.t += SETTINGS.Speed;
+};
+
 // ...existing code...
 
 
