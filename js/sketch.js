@@ -12,7 +12,7 @@ drawFns['0'] = (p, g, st) => {
     FontSize: 18,
     TopMargin: 12,
     BottomMargin: 12,
-    SideMargin: 20,
+    SideMargin: 15,
     StartValue: 0,
     EndValue: 130,
     Duration: 2.5,
