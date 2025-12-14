@@ -1116,38 +1116,92 @@ drawFns['7'] = (p, g, st) => {
 
 /* ============= August (target 8) ============= */
 drawFns['8'] = (p, g, st) => {
-  // --- Settings ---
-  const SETTINGS = {
-    word: 'AUGUST',
-    fg: '#000000',
-    bg: '#ffffff',
-    FontSize: 9.49,
-    SideMargin: 27.89,
-    TopMargin: 0,
-    BottomMargin: 0,
-    Distance: 11.5,
-    StartTracking: 42,    // 넓은 간격에서 시작
-    EndTracking: -12,     // 좁은 간격으로 수렴
-    Speed: 0.003,         // 천천히 변화
-    // Semicolon rain settings
-    EnableSemicolons: true,
-    SemicolonGlyph: ';',
-    SemicolonCount: 14,
-    SemicolonSize: 40
-  };
-  
+  // SVG 정적 패턴 + wave 모션 + 세미콜론 rain
   if (!st.inited) {
     st.inited = true;
     st.t = 55.451;
     st.font = loadedFont;
+    st.dotPhase = 0;
+    
+    // SVG에서 분석한 각 행의 첫 글자(A) x 위치와 글자 간격
+    st.rows = [
+      {y: 0.00, startX: 27.89, spacing: 52.14},
+      {y: 11.50, startX: 47.75, spacing: 44.20},
+      {y: 23.00, startX: 71.75, spacing: 34.60},
+      {y: 34.51, startX: 88.31, spacing: 27.98},
+      {y: 46.01, startX: 93.73, spacing: 25.81},
+      {y: 57.51, startX: 93.65, spacing: 25.84},
+      {y: 69.01, startX: 87.69, spacing: 28.23},
+      {y: 80.51, startX: 70.55, spacing: 35.08},
+      {y: 92.01, startX: 46.48, spacing: 44.71},
+      {y: 103.52, startX: 27.22, spacing: 52.42},
+      {y: 115.02, startX: 23.65, spacing: 53.85},
+      {y: 126.52, startX: 37.86, spacing: 48.16},
+      {y: 138.02, startX: 61.62, spacing: 38.66},
+      {y: 149.52, startX: 82.43, spacing: 30.33},
+      {y: 161.02, startX: 92.50, spacing: 26.30},
+      {y: 172.53, startX: 93.93, spacing: 25.73},
+      {y: 184.03, startX: 91.61, spacing: 26.66},
+      {y: 195.53, startX: 79.67, spacing: 31.44},
+      {y: 207.03, startX: 57.67, spacing: 40.24},
+      {y: 218.53, startX: 34.66, spacing: 49.44},
+      {y: 230.04, startX: 22.96, spacing: 54.12},
+      {y: 241.54, startX: 29.34, spacing: 51.56},
+      {y: 253.04, startX: 50.05, spacing: 43.28},
+      {y: 264.54, startX: 73.62, spacing: 33.86},
+      {y: 276.04, startX: 89.13, spacing: 27.65},
+      {y: 287.54, startX: 93.81, spacing: 25.78},
+      {y: 299.05, startX: 93.53, spacing: 25.89},
+      {y: 310.55, startX: 87.00, spacing: 28.50},
+      {y: 322.05, startX: 69.39, spacing: 35.55},
+      {y: 333.55, startX: 45.42, spacing: 45.14},
+      {y: 345.05, startX: 26.76, spacing: 52.60},
+      {y: 356.55, startX: 23.84, spacing: 53.77},
+      {y: 368.06, startX: 38.33, spacing: 47.97},
+      {y: 379.56, startX: 61.98, spacing: 38.51},
+      {y: 391.06, startX: 82.54, spacing: 30.29},
+      {y: 402.56, startX: 92.49, spacing: 26.31},
+      {y: 414.06, startX: 93.93, spacing: 25.73},
+      {y: 425.57, startX: 91.71, spacing: 26.62},
+      {y: 437.07, startX: 80.09, spacing: 31.27},
+      {y: 448.57, startX: 58.45, spacing: 39.92},
+      {y: 460.07, startX: 35.43, spacing: 49.13},
+      {y: 471.57, startX: 23.12, spacing: 54.06},
+      {y: 483.07, startX: 28.53, spacing: 51.89},
+      {y: 494.58, startX: 48.51, spacing: 43.90},
+      {y: 506.08, startX: 72.11, spacing: 34.46},
+      {y: 517.58, startX: 88.32, spacing: 27.98},
+      {y: 529.08, startX: 93.71, spacing: 25.82},
+      {y: 540.58, startX: 93.69, spacing: 25.83},
+      {y: 552.08, startX: 88.18, spacing: 28.03},
+      {y: 563.59, startX: 71.85, spacing: 34.57},
+      {y: 575.09, startX: 48.28, spacing: 43.99},
+      {y: 586.59, startX: 28.44, spacing: 51.92},
+      {y: 598.09, startX: 23.13, spacing: 54.05},
+      {y: 609.59, startX: 35.38, spacing: 49.15},
+      {y: 621.10, startX: 58.25, spacing: 40.00},
+      {y: 632.60, startX: 79.84, spacing: 31.37},
+      {y: 644.10, startX: 91.58, spacing: 26.67},
+      {y: 655.60, startX: 93.93, spacing: 25.73},
+      {y: 667.10, startX: 92.66, spacing: 26.24},
+      {y: 678.60, startX: 83.29, spacing: 29.99},
+      {y: 690.11, startX: 63.38, spacing: 37.95},
+      {y: 701.61, startX: 39.83, spacing: 47.37}
+    ];
+    
+    st.letters = ['A', 'U', 'G', 'U', 'S', 'T'];
+    
+    // wave 모션 파라미터
+    st.amplitude = 6; // px
+    st.phaseStep = 0.32; // 행별 위상차
     
     // 세미콜론 파티클 초기화
     st.slashDots = [];
-    for (let i = 0; i < SETTINGS.SemicolonCount; i++) {
+    for (let i = 0; i < 14; i++) {
       const fixedAngle = p.radians(p.random(-80, 80));
       st.slashDots.push({
         x: p.random(0, g.width),
-        y: (i / SETTINGS.SemicolonCount) * g.height + p.random(-30, 30),
+        y: (i / 14) * g.height + p.random(-30, 30),
         baseX: p.random(0, g.width),
         theta: p.random(p.TWO_PI),
         wavePhase: p.random(p.TWO_PI),
@@ -1160,7 +1214,7 @@ drawFns['8'] = (p, g, st) => {
     }
     
     // 세미콜론 스프라이트 생성
-    const glyphSize = p.max(8, p.floor(SETTINGS.SemicolonSize));
+    const glyphSize = p.max(8, p.floor(40));
     const padFactor = 2.0;
     const S = p.floor(glyphSize * padFactor);
     st.slashDotSprite = p.createGraphics(S, S);
@@ -1177,112 +1231,67 @@ drawFns['8'] = (p, g, st) => {
     const padY = (S - H) * 0.5;
     const cx = S * 0.5;
     const baseY = padY + asc;
-    st.slashDotSprite.text(SETTINGS.SemicolonGlyph, cx, baseY);
+    st.slashDotSprite.text(';', cx, baseY);
   }
   
-  // Background
-  g.background(SETTINGS.bg);
-  
-  // --- August Convergence Animation ---
-  g.textFont(st.font || 'IPAMincho Regular');
-  g.textSize(SETTINGS.FontSize);
+  g.background('#ffffff');
+  g.textSize(9.49);
   g.textAlign(p.LEFT, p.CENTER);
+  g.fill(0);
   g.noStroke();
+  g.textFont(st.font || 'IPAMincho Regular');
   
-  const availH = p.max(0, g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin);
-  const copies = p.min(p.floor(availH / SETTINGS.Distance), 150);
-  const totalContentH = (copies - 1) * SETTINGS.Distance;
-  const verticalOffset = (g.height - totalContentH) / 2;
-  
-  for (let idx = 0; idx < copies; idx++) {
-    const rowRatio = idx / p.max(1, copies - 1);
-    
-    // SVG와 유사한 점진적 수렴 계산
-    const timeOffset = rowRatio * 0.3; // 행별 시간 지연
-    const adjustedTime = p.max(0, st.t - timeOffset);
-    
-    // 지수적 수렴 (SVG 패턴과 유사)
-    const convergence = 1 - p.exp(-adjustedTime * 1.2);
-    
-    // 트래킹 계산: 넓은 간격에서 매우 좁은 간격으로
-    const tracking = p.lerp(SETTINGS.StartTracking, SETTINGS.EndTracking, convergence);
-    
-    // 투명도: 중앙으로 갈수록 진하게
-    const centerDistance = p.abs(rowRatio - 0.5) * 2;
-    const baseAlpha = p.max(0.2, 1 - centerDistance * 0.8);
-    const convergenceAlpha = 0.3 + convergence * 0.7;
-    const alpha = baseAlpha * convergenceAlpha;
-    
-    g.fill(0, 255 * alpha);
-    
-    // 수직 압축 효과
-    const compression = convergence * 0.15;
-    const verticalShift = (rowRatio - 0.5) * compression * g.height * 0.08;
-    const y = verticalOffset + (idx + 0.5) * SETTINGS.Distance + verticalShift;
-    
-    // 텍스트 그리기 (tracked text)
-    const x = SETTINGS.SideMargin;
-    drawAugustTrackedText(p, g, SETTINGS.word, x, y, tracking, st.t + idx * 0.02, SETTINGS.FontSize, idx);
-  }
-  
-  // --- Semicolon Rain Overlay ---
-  if (SETTINGS.EnableSemicolons) {
-    for (let pDot of st.slashDots) {
-      // 파도 모션: 부드러운 sin파 곡선으로 좌우 움직임
-      pDot.wavePhase += pDot.waveSpeed;
-      
-      // sin파를 이용한 좌우 움직임
-      const waveOffset = p.sin(pDot.wavePhase) * pDot.waveAmplitude;
-      const waveRipple = p.sin(pDot.y * 0.01 + pDot.wavePhase) * pDot.waveAmplitude * 0.5;
-      pDot.x = pDot.baseX + waveOffset + waveRipple;
-      
-      // 상하로도 미세한 움직임
-      const verticalRipple = p.sin(pDot.x * 0.008 + pDot.wavePhase * 0.7) * 8;
-      pDot.y += verticalRipple * 0.02;
-      
-      // 경계 처리
-      if (pDot.y < -50) pDot.y = g.height + 50;
-      if (pDot.y > g.height + 50) pDot.y = -50;
-      
-      // 기준 X 위치도 천천히 변화
-      pDot.baseX += p.sin(st.t * 0.012 + pDot.theta) * 0.5;
-      if (pDot.baseX < -100) pDot.baseX = g.width + 100;
-      if (pDot.baseX > g.width + 100) pDot.baseX = -100;
-      
-      // 고정된 각도로 회전
-      pDot._angle = pDot.fixedAngle;
-      
-      g.push();
-      g.translate(p.round(pDot.x), p.round(pDot.y));
-      if (pDot._angle !== 0) g.rotate(pDot._angle);
-      g.image(st.slashDotSprite, 0, 0);
-      g.pop();
+  // SVG 정적 패턴 + 행 wave 모션
+  for (let rowIdx = 0; rowIdx < st.rows.length; rowIdx++) {
+    const row = st.rows[rowIdx];
+    let x = row.startX;
+    // 행 전체 wave 모션
+    const yWave = row.y + p.sin(st.t * 0.9 + rowIdx * st.phaseStep) * st.amplitude;
+    for (let i = 0; i < st.letters.length; i++) {
+      g.text(st.letters[i], x, yWave);
+      if (i < st.letters.length - 1) {
+        x += row.spacing;
+      }
     }
   }
   
-  st.t += SETTINGS.Speed;
-};
-
-// Helper function for August tracked text rendering
-function drawAugustTrackedText(p, g, str, x, y, tracking, tt, baseFontSize, rowIndex) {
-  let cx = x;
-  
-  for (let i = 0; i < str.length; i++) {
-    const ch = str[i];
+  // 세미콜론 rain 오버레이
+  for (let pDot of st.slashDots) {
+    // 파도 모션: 각 파티클이 부드러운 sin파 곡선으로 좌우 움직임
+    pDot.wavePhase += pDot.waveSpeed;
     
-    // 아주 미세한 글자별 움직임
-    const letterTime = tt + i * 0.05;
-    const yOffset = p.sin(letterTime * p.PI * 4) * 0.3;
-    const xOffset = p.cos(letterTime * p.PI * 3) * 0.2;
+    // sin파를 이용한 부드러운 좌우 움직임 - 물결 모양으로 연결된 파도
+    const waveOffset = p.sin(pDot.wavePhase) * pDot.waveAmplitude;
+    // Y 위치에 따라 파도의 위상이 다르게 적용되어 물결 모양 생성
+    const waveRipple = p.sin(pDot.y * 0.01 + pDot.wavePhase) * pDot.waveAmplitude * 0.5;
+    pDot.x = pDot.baseX + waveOffset + waveRipple;
+    
+    // 상하로도 물결 모양의 미세한 움직임
+    const verticalRipple = p.sin(pDot.x * 0.008 + pDot.wavePhase * 0.7) * 8;
+    pDot.y += verticalRipple * 0.02;
+    
+    // 경계 처리: 화면 밖으로 나가면 반대편에서 다시 나타남
+    if (pDot.y < -50) pDot.y = g.height + 50;
+    if (pDot.y > g.height + 50) pDot.y = -50;
+    
+    // 기준 X 위치도 천천히 변화시켜서 더 자연스러운 파도 효과
+    pDot.baseX += p.sin(st.t * 0.012 + pDot.theta) * 0.5;
+    if (pDot.baseX < -100) pDot.baseX = g.width + 100;
+    if (pDot.baseX > g.width + 100) pDot.baseX = -100;
+    
+    // 각 파티클마다 고정된 다양한 각도로만 회전
+    pDot._angle = pDot.fixedAngle;
     
     g.push();
-    g.translate(cx + xOffset, y + yOffset);
-    g.text(ch, 0, 0);
+    g.translate(p.round(pDot.x), p.round(pDot.y));
+    if (pDot._angle !== 0) g.rotate(pDot._angle);
+    g.image(st.slashDotSprite, 0, 0);
     g.pop();
-    
-    cx += g.textWidth(ch) + tracking;
   }
-}
+  
+  st.t += 0.028;
+  st.dotPhase += 0.028;
+};
 
 /* ============= September (target 9) ============= */
 drawFns['9'] = (p, g, st) => {
