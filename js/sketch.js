@@ -958,10 +958,23 @@ drawFns['7'] = (p, g, st) => {
   // --- Settings ---
   const SETTINGS = {
     word: 'July',
+    month: 7,
     fg: '#000000',
     bg: '#ffffff',
     FontSize: 18,
-    Speed: 0.003,
+    TopMargin: 0,
+    BottomMargin: 0,
+    SideMargin: 10,
+    StartValue: 45,
+    EndValue: 8,
+    Duration: 2.0,
+    Delay: 0.08,
+    Distance: 56,
+    DelayCurve: 1.0,
+    Gamma: 2.5,
+    Phase: 0.0,
+    RowPhase: 0.1,
+    align: 'center',
     // Quote rain settings
     EnableQuotes: true,
     QuoteGlyph: '"',
@@ -977,24 +990,6 @@ drawFns['7'] = (p, g, st) => {
     QuoteGravity: 0.85,
     QuoteTerminal: 12.0
   };
-  
-  // SVG에서 추출한 정확한 July 좌표
-  const svgRows = [
-    {y:0,    x:[0.00,241.38,482.76,724.14]},
-    {y:56,   x:[0.00,183.63,367.26,550.89]},
-    {y:112,  x:[0.00,125.17,250.34,375.50]},
-    {y:168,  x:[0.00,78.52,157.03,235.55]},
-    {y:224,  x:[0.00,45.46,90.92,136.37]},
-    {y:280,  x:[0.00,25.53,51.05,76.58]},
-    {y:336,  x:[0.00,16.35,32.70,49.05]},
-    {y:392,  x:[0.00,14.06,28.11,42.17]},
-    {y:448,  x:[0.00,14.19,28.38,42.57]},
-    {y:504,  x:[0.00,17.53,35.05,52.58]},
-    {y:560,  x:[0.00,28.73,57.46,86.18]},
-    {y:616,  x:[0.00,51.55,103.09,154.64]},
-    {y:672,  x:[0.00,88.21,176.42,264.62]},
-    {y:728,  x:[0.00,139.06,278.13,417.19]}
-  ];
   
   if (!st.inited) {
     st.inited = true;
@@ -1023,27 +1018,54 @@ drawFns['7'] = (p, g, st) => {
   // Background
   g.background(SETTINGS.bg);
   
-  // --- July Typography ---
-  g.fill('#888888'); // kinetic text 회색
+  // --- July Typography with Kinetic Motion ---
+  g.fill('#888888');
   g.noStroke();
   g.textFont(st.font || 'IPAMincho Regular');
   g.textSize(SETTINGS.FontSize);
   g.textAlign(p.LEFT, p.CENTER);
   
-  const chars = SETTINGS.word.split('');
-  const canvasCenter = g.width / 2;
+  const usableH = g.height - SETTINGS.TopMargin - SETTINGS.BottomMargin;
+  const copies = p.constrain(p.floor(usableH / SETTINGS.Distance), 1, 1200);
+  const totalContentH = (copies - 1) * SETTINGS.Distance;
+  const verticalOffset = (g.height - totalContentH) / 2;
+  const phaseOff = SETTINGS.Phase * SETTINGS.Duration;
   
-  // kinetic wave: 각 행이 좌우로 부드럽게 움직임 (극도로 빠른 속도)
-  for (let idx = 0; idx < svgRows.length; idx++) {
-    const row = svgRows[idx];
-    const minX = p.min(...row.x);
-    const maxX = p.max(...row.x);
-    const rowCenter = (minX + maxX) / 2;
-    const shift = canvasCenter - rowCenter;
-    const wave = p.sin(st.t * 0.8 + idx * 0.35) * 24; // 진폭 24px, 부드러운 속도
+  // Helper function for tracked text width
+  const trackedTextWidth = (str, tracking) => {
+    let w = 0;
+    for (let i = 0; i < str.length; i++) w += g.textWidth(str[i]);
+    return w + tracking * (str.length - 1);
+  };
+  
+  for (let idx = 0; idx < copies; idx++) {
+    const rowFrac = (copies > 1) ? idx / (copies - 1) : 0;
+    const curvedDelay = SETTINGS.Delay * p.pow(rowFrac, SETTINGS.DelayCurve);
+    const timeWithDelay = (st.t + phaseOff + idx * SETTINGS.RowPhase) - curvedDelay;
     
-    for (let i = 0; i < chars.length && i < row.x.length; i++) {
-      g.text(chars[i], row.x[i] + shift + wave, row.y);
+    const progressRaw = progressByMonth(SETTINGS.month, timeWithDelay, SETTINGS.Duration);
+    const progress = p.pow(progressRaw, SETTINGS.Gamma);
+    
+    const tracking = SETTINGS.StartValue + progress * (SETTINGS.EndValue - SETTINGS.StartValue);
+    const y = verticalOffset + idx * SETTINGS.Distance;
+    
+    // Alignment calculation
+    let x;
+    const totalW = trackedTextWidth(SETTINGS.word, tracking);
+    if (SETTINGS.align === 'left') {
+      x = SETTINGS.SideMargin;
+    } else if (SETTINGS.align === 'center') {
+      x = g.width / 2 - totalW / 2;
+    } else {
+      x = g.width - SETTINGS.SideMargin - totalW;
+    }
+    
+    // Draw tracked text
+    let xpos = x;
+    for (let i = 0; i < SETTINGS.word.length; i++) {
+      const ch = SETTINGS.word[i];
+      g.text(ch, xpos, y);
+      xpos += g.textWidth(ch) + tracking;
     }
   }
   
@@ -1112,7 +1134,8 @@ drawFns['7'] = (p, g, st) => {
     g.pop();
   }
   
-  st.t += SETTINGS.Speed;
+  // Increment time
+  st.t += 0.003;
 };
 
 /* ============= August (target 8) ============= */
