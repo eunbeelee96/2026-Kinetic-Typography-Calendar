@@ -246,6 +246,7 @@ const canvases = {};   // { '0': HTMLCanvasElement, ... }
 const layers = {};     // { '0': p5.Graphics, ... }
 const visible = {};    // { '0': boolean, ... }
 const STATE = {};      // { '0': {...}, ... }
+const lostTimers = {}; // targetLost 딜레이 타이머
 // 폰트 경로 (네 경로로 수정 가능)
 const FONT_PATH = 'IPAMincho Regular.ttf';
 let loadedFont = null;
@@ -960,7 +961,7 @@ drawFns['7'] = (p, g, st) => {
     fg: '#000000',
     bg: '#ffffff',
     FontSize: 18,
-    Speed: 0.065,
+    Speed: 0.003,
     // Quote rain settings
     EnableQuotes: true,
     QuoteGlyph: '"',
@@ -1039,7 +1040,7 @@ drawFns['7'] = (p, g, st) => {
     const maxX = p.max(...row.x);
     const rowCenter = (minX + maxX) / 2;
     const shift = canvasCenter - rowCenter;
-    const wave = p.sin(st.t * 30.0 + idx * 0.35) * 24; // 진폭 24px, 극도로 빠른 속도
+    const wave = p.sin(st.t * 0.8 + idx * 0.35) * 24; // 진폭 24px, 부드러운 속도
     
     for (let i = 0; i < chars.length && i < row.x.length; i++) {
       g.text(chars[i], row.x[i] + shift + wave, row.y);
@@ -1059,8 +1060,8 @@ drawFns['7'] = (p, g, st) => {
     
     for (let pQuote of st.quotes) {
       // 바람/흔들림
-      const wind = SETTINGS.QuoteWindAmp * (p.noise((pQuote.y + st.t * 110) * 0.002, (st.t + pQuote.theta) * SETTINGS.QuoteWindFreq) - 0.5);
-      const drift = SETTINGS.QuoteDriftAmp * p.sin(st.t * p.TWO_PI * SETTINGS.QuoteDriftFreq + pQuote.theta);
+      const wind = SETTINGS.QuoteWindAmp * (p.noise((pQuote.y + st.t * 3) * 0.002, (st.t + pQuote.theta) * SETTINGS.QuoteWindFreq) - 0.5);
+      const drift = SETTINGS.QuoteDriftAmp * p.sin(st.t * p.TWO_PI * 0.05 + pQuote.theta);
       pQuote.vx += (wind * 0.08 + drift * 0.02);
       pQuote.vy += SETTINGS.QuoteGravity * 0.18;
       pQuote.vy = p.min(pQuote.vy, SETTINGS.QuoteTerminal);
@@ -1100,7 +1101,7 @@ drawFns['7'] = (p, g, st) => {
       let angle = pQuote.baseAngle;
       angle += p.atan2(pQuote.vy, pQuote.vx) * 0.7;
       angle += pQuote.rnd * 0.7;
-      angle += p.sin(st.t * 2 + pQuote.theta) * 0.5;
+      angle += p.sin(st.t * 0.3 + pQuote.theta) * 0.5;
       
       g.push();
       g.translate(pQuote.x, pQuote.y);
@@ -2070,11 +2071,30 @@ window.addEventListener('DOMContentLoaded', () => {
   visible['10'] = true;
 
   // MindAR target 이벤트 연결
+  const LOST_DELAY = 500; // targetLost 후 500ms 뒤에 실제로 false로 전환
+  
   IDS.forEach(id => {
     const el = document.getElementById(`target-${id}`);
     if (!el) return;
-    el.addEventListener('targetFound', () => { visible[id] = true; });
-    el.addEventListener('targetLost',  () => { visible[id] = false; });
+    
+    el.addEventListener('targetFound', () => {
+      // Found 즉시 적용
+      visible[id] = true;
+      // Lost 타이머가 있으면 취소
+      if (lostTimers[id]) {
+        clearTimeout(lostTimers[id]);
+        lostTimers[id] = null;
+      }
+    });
+    
+    el.addEventListener('targetLost', () => {
+      // Lost는 딜레이 후 적용
+      if (lostTimers[id]) clearTimeout(lostTimers[id]);
+      lostTimers[id] = setTimeout(() => {
+        visible[id] = false;
+        lostTimers[id] = null;
+      }, LOST_DELAY);
+    });
   });
 
   // p5 시작
