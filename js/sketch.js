@@ -1421,7 +1421,7 @@ drawFns['10'] = (p, g, st) => {
     Duration: 2.5,
     Delay: 0.08,
     Distance: 55,
-    Speed: 0.015,
+    Speed: 0.003,
     Gamma: 3,
     Phase: 0.361,
     RowPhase: 0.12,
@@ -1429,7 +1429,7 @@ drawFns['10'] = (p, g, st) => {
     align: 'center',
     // Slash rain parameters
     slashRainDotCount: 14,
-    slashRainSpeed: 2.2,
+    slashRainSpeed: 0.8,
     slashRainFontSize: 32,
     slashRainAlpha: 60
   };
@@ -1522,13 +1522,13 @@ drawFns['10'] = (p, g, st) => {
     g.translate(d.x, d.y);
     
     // Natural wobble rotation
-    const wobbleTime = st.t * 0.03 + d.x * 0.01;
-    const wobble = p.sin(wobbleTime) * 0.3;
+    const wobbleTime = st.t * 0.01 + d.x * 0.005;
+    const wobble = p.sin(wobbleTime) * 0.1;
     g.rotate(d.angle + wobble);
     
     // Curly brace spacing motion
-    const spreadTime = st.t * 0.04 + d.phase;
-    const spread = p.map(p.sin(spreadTime), -1, 1, 0, SETTINGS.slashRainFontSize * 2.2);
+    const spreadTime = st.t * 0.015 + d.phase;
+    const spread = p.map(p.sin(spreadTime), -1, 1, 0, SETTINGS.slashRainFontSize * 1.5);
     
     g.textAlign(p.CENTER, p.CENTER);
     g.textSize(SETTINGS.slashRainFontSize);
@@ -1538,7 +1538,7 @@ drawFns['10'] = (p, g, st) => {
     
     // Update position
     d.y += d.speed;
-    d.angle += d.angleSpeed + p.random(-0.01, 0.01);
+    d.angle += d.angleSpeed * 0.3;
     
     // Wrap around when reaching bottom
     if (d.y > lastRowY) {
