@@ -12,7 +12,7 @@ drawFns['0'] = (p, g, st) => {
     FontSize: 18,
     TopMargin: 12,
     BottomMargin: 12,
-    SideMargin: 15,
+    SideMargin: 10,
     StartValue: 0,
     EndValue: 130,
     Duration: 2.5,
@@ -272,9 +272,9 @@ drawFns['3'] = (p, g, st) => {
       FontSize: 25,
       TopMargin: 6,
       BottomMargin: 0,
-      SideMargin: 20,
+      SideMargin: 10,
       StartValue: 300,
-      EndValue: 26,
+      EndValue: 17,
       Duration: 1.52,
       Delay: 0.3,
       Distance: 39,
@@ -315,6 +315,8 @@ drawFns['3'] = (p, g, st) => {
   g.textFont(st.font || 'Suisse Intl Mono, Helvetica, Arial, monospace');
   const usableH = g.height - S.TopMargin - S.BottomMargin;
   const copies = p.constrain(Math.floor(usableH / S.Distance), 1, 1200);
+  const totalContentH = (copies - 1) * S.Distance;
+  const verticalOffset = (g.height - totalContentH) / 2;
   const phaseOff = S.Phase * S.Duration;
   for (let idx = 0; idx < copies; idx++) {
     const rowFrac = (copies > 1) ? idx / (copies - 1) : 0;
@@ -323,7 +325,7 @@ drawFns['3'] = (p, g, st) => {
     const progressRaw = progressByMonth(S.month, timeWithDelay, S.Duration);
     const progress = Math.pow(progressRaw, S.Gamma);
     const tracking = S.StartValue + progress * (S.EndValue - S.StartValue);
-    const y = S.TopMargin + idx * S.Distance;
+    const y = verticalOffset + idx * S.Distance;
     const totalW = trackedTextWidth(S.word, tracking, g);
     let x;
     if (S.align === 'center') x = g.width / 2 - totalW / 2;
@@ -368,12 +370,14 @@ drawFns['3'] = (p, g, st) => {
     pDot.x += pDot.vx;
     pDot.y += pDot.vy;
     // 래핑/리스폰 - 텍스트 마지막 줄과 맞춤
-    const usableH = g.height - S.TopMargin - S.BottomMargin;
-    const copies = p.constrain(Math.floor(usableH / S.Distance), 1, 1200);
-    const lastRowY = S.TopMargin + (copies - 1) * S.Distance + S.FontSize;
+    const usableH2 = g.height - S.TopMargin - S.BottomMargin;
+    const copies2 = p.constrain(Math.floor(usableH2 / S.Distance), 1, 1200);
+    const totalContentH2 = (copies2 - 1) * S.Distance;
+    const verticalOffset2 = (g.height - totalContentH2) / 2;
+    const lastRowY = verticalOffset2 + (copies2 - 1) * S.Distance + S.FontSize;
     const capY = lastRowY - (st.dotSprite ? st.dotSpriteBottomOffset : 0);
     if (pDot.y > capY) {
-      pDot.y = 0 - S.SlashSpawnTopPad;
+      pDot.y = verticalOffset2 - S.SlashSpawnTopPad;
       pDot.x = p.random(0, g.width);
       pDot.vx = p.random(-0.6, 0.6);
       pDot.vy = p.random(2.0, 4.2);
@@ -1660,7 +1664,7 @@ drawFns['1'] = (p, g, st) => {
   const minY = Math.min(...allYs);
   const maxY = Math.max(...allYs);
   const svgContentHeight = maxY - minY;
-  const verticalOffset = (g.height - svgContentHeight) / 2 - minY;
+  const verticalOffset = (g.height - svgContentHeight) / 2 - minY + 10;
   
   let t0 = st.t + phase;
   for (let i = 0; i < st.svgTextData.length; i++) {
