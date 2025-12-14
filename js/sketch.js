@@ -10,8 +10,8 @@ drawFns['0'] = (p, g, st) => {
     fg: "#000000",
     bg: "#ffffff",
     FontSize: 18,
-    TopMargin: 12,
-    BottomMargin: 12,
+    TopMargin: -8,
+    BottomMargin: -8,
     SideMargin: 10,
     StartValue: 0,
     EndValue: 130,
@@ -274,7 +274,7 @@ drawFns['3'] = (p, g, st) => {
       BottomMargin: 0,
       SideMargin: 10,
       StartValue: 300,
-      EndValue: 17,
+      EndValue: 13,
       Duration: 1.52,
       Delay: 0.3,
       Distance: 39,
@@ -1664,7 +1664,7 @@ drawFns['1'] = (p, g, st) => {
   const minY = Math.min(...allYs);
   const maxY = Math.max(...allYs);
   const svgContentHeight = maxY - minY;
-  const verticalOffset = (g.height - svgContentHeight) / 2 - minY + 10;
+  const verticalOffset = (g.height - svgContentHeight) / 2 - minY + 15;
   
   let t0 = st.t + phase;
   for (let i = 0; i < st.svgTextData.length; i++) {
