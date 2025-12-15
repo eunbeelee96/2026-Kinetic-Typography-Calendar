@@ -2083,15 +2083,6 @@ window.addEventListener('DOMContentLoaded', () => {
     c.height = CANVAS_H;   // ← 반드시 설정
     c.style.backgroundColor = 'transparent';
   });
-  // (canvas-debug 디버그 캔버스 제거)
-  // 디버깅: 7월(7번) 캔버스 항상 보이게
-  visible['7'] = true;
-  // 디버깅: 8월(8번) 캔버스 항상 보이게
-  visible['8'] = true;
-  // 디버깅: 9월(9번) 캔버스 항상 보이게
-  visible['9'] = true;
-  // 디버깅: 10월(10번) 캔버스 항상 보이게
-  visible['10'] = true;
 
   // MindAR target 이벤트 연결
   const LOST_DELAY = 500; // targetLost 후 500ms 뒤에 실제로 false로 전환
@@ -2152,7 +2143,7 @@ function mainSketch(p) {
   p.draw = function () {
     // 한 프레임 진입 로그 (디버그용 — 필요시 주석)
     // console.log('p.draw frame', p.frameCount);
-    // 보이는 타겟만 drawFn 호출
+    // 보이는 타겟만 drawFn 호출 및 blit
     IDS.forEach(id => {
       if (visible[id]) {
         if (drawFns[id]) {
@@ -2162,12 +2153,12 @@ function mainSketch(p) {
         } else {
           // console.warn('no drawFn for', id);
         }
-      }
-      // Graphics → HTMLCanvas 복사
-      try {
-        blit(layers[id], canvases[id]);
-      } catch (e) {
-        console.error('blit failed for', id, e);
+        // Graphics → HTMLCanvas 복사 (visible일 때만)
+        try {
+          blit(layers[id], canvases[id]);
+        } catch (e) {
+          console.error('blit failed for', id, e);
+        }
       }
     });
 
