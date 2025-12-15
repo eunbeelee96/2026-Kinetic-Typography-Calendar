@@ -24,9 +24,6 @@
           const mesh = this.el.getObject3D("mesh");
           if (!mesh || !mesh.material) return;
           
-          // object3D가 visible이 아니면 업데이트하지 않음
-          if (!this.el.object3D.visible) return;
-          
           // 기존 경로: map이 존재하면 needsUpdate
           if (mesh.material.map) {
             mesh.material.map.needsUpdate = true;
@@ -103,7 +100,6 @@
     filterBeta: 100;
     warmupTolerance: 3;
     missTolerance: 3;
-    maxTrack: 1;
   "
   vr-mode-ui="enabled: false"
   device-orientation-permission-ui="enabled: false"

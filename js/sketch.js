@@ -2143,7 +2143,7 @@ function mainSketch(p) {
   p.draw = function () {
     // 한 프레임 진입 로그 (디버그용 — 필요시 주석)
     // console.log('p.draw frame', p.frameCount);
-    // 보이는 타겟만 drawFn 호출 및 blit
+    // 보이는 타겟만 drawFn 호출
     IDS.forEach(id => {
       if (visible[id]) {
         if (drawFns[id]) {
@@ -2153,12 +2153,12 @@ function mainSketch(p) {
         } else {
           // console.warn('no drawFn for', id);
         }
-        // Graphics → HTMLCanvas 복사 (visible일 때만)
-        try {
-          blit(layers[id], canvases[id]);
-        } catch (e) {
-          console.error('blit failed for', id, e);
-        }
+      }
+      // Graphics → HTMLCanvas 복사 (항상 실행)
+      try {
+        blit(layers[id], canvases[id]);
+      } catch (e) {
+        console.error('blit failed for', id, e);
       }
     });
 
